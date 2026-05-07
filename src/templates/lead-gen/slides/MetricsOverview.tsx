@@ -29,8 +29,8 @@ export function MetricsOverview({ data, ePeriod, metrics }: MetricsOverviewProps
       <SlideLogo clientName={data.client} position="top-right" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
         <SectionLabel style={{ marginBottom: 0 }}>Visão Geral</SectionLabel>
-        <div style={{ fontSize: 13, color: t.slideMuted, fontWeight: 500 }}>—</div>
-        <EditableField e={ePeriod} style={{ fontSize: 13, color: t.slideMuted, fontWeight: 600 }} placeholder="Período" />
+        <div style={{ fontSize: 15, color: t.slideMuted, fontWeight: 500 }}>—</div>
+        <EditableField e={ePeriod} style={{ fontSize: 15, color: t.slideMuted, fontWeight: 600 }} placeholder="Período" />
       </div>
       <MetricGrid metrics={metrics} columns={3} />
     </SlideShell>

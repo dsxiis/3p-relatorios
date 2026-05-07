@@ -84,12 +84,12 @@ export function UnitSlide({
 
       <div style={{ marginBottom: 18 }}>
         <SectionLabel>Unidade</SectionLabel>
-        <h2 style={{ margin: '6px 0 0', fontSize: 28, fontWeight: 800, color: t.slideText, letterSpacing: '-0.5px' }}>
-          <EditableField e={eCity} style={{ fontSize: 28, fontWeight: 800, color: t.slideText, letterSpacing: '-0.5px' }} placeholder="Cidade" />
+        <h2 style={{ margin: '6px 0 0', fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }}>
+          <EditableField e={eCity} style={{ fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }} placeholder="Cidade" />
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: hasCreatives ? '1fr 220px' : '1fr', gap: 28, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: hasCreatives ? '2fr 1fr' : '1fr', gap: 32, marginBottom: 20 }}>
         <div>
           <MetricGrid metrics={metrics} columns={3} />
         </div>

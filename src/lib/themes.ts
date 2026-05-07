@@ -105,8 +105,8 @@ export const darkPremium: SlideTheme = {
   cardRadius: 8,
   metricCardVariant: 'filled',
   sectionLabelStyle: 'badge',
-  slidePaddingX: 36,
-  metricValueSize: 30,
+  slidePaddingX: 40,
+  metricValueSize: 46,
 }
 
 // ── 2. Sunrise (editorial warm — left-border cards) ────────────
@@ -151,8 +151,8 @@ export const sunrise: SlideTheme = {
   cardRadius: 6,
   metricCardVariant: 'left-border',
   sectionLabelStyle: 'underline',
-  slidePaddingX: 36,
-  metricValueSize: 32,
+  slidePaddingX: 40,
+  metricValueSize: 48,
 }
 
 // ── 3. Ocean (corporate blue — top-accent cards) ──────────────
@@ -197,8 +197,8 @@ export const ocean: SlideTheme = {
   cardRadius: 4,
   metricCardVariant: 'top-accent',
   sectionLabelStyle: 'dot',
-  slidePaddingX: 32,
-  metricValueSize: 30,
+  slidePaddingX: 36,
+  metricValueSize: 46,
 }
 
 // ── 4. Emerald (growth green — filled rounded) ─────────────────
@@ -243,8 +243,8 @@ export const emerald: SlideTheme = {
   cardRadius: 12,
   metricCardVariant: 'filled',
   sectionLabelStyle: 'badge',
-  slidePaddingX: 36,
-  metricValueSize: 32,
+  slidePaddingX: 40,
+  metricValueSize: 48,
 }
 
 // ── 5. Mono Pro (ultra-minimal B&W — outline cards) ────────────
@@ -289,8 +289,8 @@ export const monoPro: SlideTheme = {
   cardRadius: 2,
   metricCardVariant: 'outline',
   sectionLabelStyle: 'rule',
-  slidePaddingX: 40,
-  metricValueSize: 34,
+  slidePaddingX: 44,
+  metricValueSize: 50,
 }
 
 export const ALL_THEMES: SlideTheme[] = [darkPremium, sunrise, ocean, emerald, monoPro]

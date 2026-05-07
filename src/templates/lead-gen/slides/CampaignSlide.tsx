@@ -43,13 +43,13 @@ export function CampaignSlide({
       <SlideLogo clientName={clientName} position="top-right" />
       <div style={{ marginBottom: 18 }}>
         <SectionLabel>Campanha</SectionLabel>
-        <h2 style={{ margin: '6px 0 0', fontSize: 24, fontWeight: 800, color: t.slideText, letterSpacing: '-0.5px' }}>
-          <EditableField e={eName} style={{ fontSize: 24, fontWeight: 800, color: t.slideText, letterSpacing: '-0.5px' }} placeholder="Nome da campanha" />
+        <h2 style={{ margin: '6px 0 0', fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }}>
+          <EditableField e={eName} style={{ fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }} placeholder="Nome da campanha" />
         </h2>
         <div style={{ fontSize: 12, color: t.slideHint, marginTop: 4 }}>ID: {campaign.id}</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: showCreative ? '1fr 220px' : '1fr', gap: 28, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: showCreative ? '2fr 1fr' : '1fr', gap: 32, marginBottom: 24 }}>
         <div>
           <MetricGrid metrics={metrics} columns={3} />
         </div>

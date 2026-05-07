@@ -48,7 +48,7 @@ export function FranqueadoraSlide({ clientName, period, franchiseHistory, eHisto
               }}>
                 {i + 1}
               </div>
-              <p style={{ fontSize: 15, color: t.darkSlideText, lineHeight: 1.7, margin: 0 }}>{item}</p>
+              <p style={{ fontSize: 17, color: t.darkSlideText, lineHeight: 1.7, margin: 0 }}>{item}</p>
             </div>
           ))}
           <button

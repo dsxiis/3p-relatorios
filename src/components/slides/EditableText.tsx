@@ -25,12 +25,12 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
             autoFocus
             style={{
               width: '100%',
-              minHeight: 130,
+              minHeight: 160,
               background: bg,
               border: `1.5px solid ${t.accent}`,
-              borderRadius: 8,
-              padding: '14px 16px',
-              fontSize: 14,
+              borderRadius: 10,
+              padding: '18px 20px',
+              fontSize: 18,
               color: text,
               lineHeight: 1.75,
               resize: 'vertical',
@@ -42,13 +42,13 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
           <button
             onClick={e.save}
             style={{
-              marginTop: 8,
+              marginTop: 10,
               background: t.accent,
               color: '#fff',
               border: 'none',
-              borderRadius: 6,
-              padding: '7px 18px',
-              fontSize: 12,
+              borderRadius: 7,
+              padding: '9px 22px',
+              fontSize: 13,
               fontWeight: 700,
               cursor: 'pointer',
             }}
@@ -61,13 +61,13 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
           style={{
             background: bg,
             border: `1px solid ${border}`,
-            borderRadius: 8,
-            padding: '14px 44px 14px 16px',
-            fontSize: 14,
+            borderRadius: 10,
+            padding: '18px 52px 18px 20px',
+            fontSize: 18,
             color: e.value ? text : muted,
             lineHeight: 1.75,
             whiteSpace: 'pre-wrap',
-            minHeight: 56,
+            minHeight: 70,
             cursor: 'text',
             position: 'relative',
           }}
@@ -77,9 +77,9 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
           <button
             onClick={ev => { ev.stopPropagation(); e.start() }}
             style={{
-              position: 'absolute', top: 10, right: 10,
+              position: 'absolute', top: 14, right: 14,
               background: 'none', border: 'none',
-              cursor: 'pointer', fontSize: 15, color: muted,
+              cursor: 'pointer', fontSize: 17, color: muted,
               padding: 2,
             }}
           >

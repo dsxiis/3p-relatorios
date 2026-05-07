@@ -12,7 +12,7 @@ export function SlideShell({ children, dark = false, style }: SlideShellProps) {
     <div style={{
       background: dark ? t.darkSlideBg : t.slideBg,
       borderRadius: t.cardRadius + 4,
-      padding: `40px ${t.slidePaddingX}px`,
+      padding: `48px ${t.slidePaddingX}px`,
       boxShadow: '0 2px 20px rgba(0,0,0,0.18)',
       color: dark ? t.darkSlideText : t.slideText,
       position: 'relative',

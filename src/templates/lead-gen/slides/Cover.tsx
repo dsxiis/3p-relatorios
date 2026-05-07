@@ -14,7 +14,7 @@ export function Cover({ eClient, ePeriod }: CoverProps) {
   return (
     <SlideShell dark style={{
       background: t.coverBg,
-      minHeight: 260,
+      minHeight: 300,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -23,8 +23,8 @@ export function Cover({ eClient, ePeriod }: CoverProps) {
       <div style={{ fontSize: 13, color: t.coverAccentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 16 }}>
         Relatório de Performance
       </div>
-      <h1 style={{ fontSize: 42, fontWeight: 900, color: t.coverTitleColor, margin: 0, letterSpacing: '-1.5px', lineHeight: 1.1 }}>
-        <EditableField e={eClient} dark style={{ fontSize: 42, fontWeight: 900, color: t.coverTitleColor, letterSpacing: '-1.5px' }} placeholder="Nome do cliente" />
+      <h1 style={{ fontSize: 52, fontWeight: 900, color: t.coverTitleColor, margin: 0, letterSpacing: '-2px', lineHeight: 1.05 }}>
+        <EditableField e={eClient} dark style={{ fontSize: 52, fontWeight: 900, color: t.coverTitleColor, letterSpacing: '-2px' }} placeholder="Nome do cliente" />
       </h1>
       <div style={{ display: 'flex', gap: 16, marginTop: 14, alignItems: 'center' }}>
         <EditableField e={ePeriod} dark style={{ fontSize: 16, color: t.coverSubColor, fontWeight: 500 }} placeholder="Período" />

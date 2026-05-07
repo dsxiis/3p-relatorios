@@ -30,7 +30,7 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
       <div style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: t.metricCardVariant === 'outline' ? 12 : 14,
+        gap: t.metricCardVariant === 'outline' ? 14 : 16,
       }}>
         {visible.map((m, i) => (
           <MetricCard key={i} m={m} dark={dark} />
@@ -39,7 +39,7 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
 
       {/* Hidden metrics — chips to re-add */}
       {hidden.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
           {hidden.map((m, i) => (
             <button
               key={i}
@@ -49,8 +49,8 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
                 background: 'none',
                 border: `1px dashed ${dark ? t.darkSlideBorder : '#d1d5db'}`,
                 borderRadius: 6,
-                padding: '3px 9px',
-                fontSize: 10,
+                padding: '4px 11px',
+                fontSize: 12,
                 color: mutedColor,
                 cursor: 'pointer',
                 display: 'flex',
@@ -94,11 +94,16 @@ function MetricCard({ m, dark }: MetricCardProps) {
 
     return (
       <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
-        style={{ background: bg, border: `1px solid ${border}`, borderRadius: t.cardRadius, padding: '16px 18px' }}
+        style={{ background: bg, border: `1px solid ${border}`, borderRadius: t.cardRadius, padding: '20px 20px 18px', overflow: 'hidden' }}
       >
         <Label>{m.label}</Label>
         {m.sub && <Sub>{m.sub}</Sub>}
         <Value e={m.e} dark={dark} value={m.value} color={accentColor} size={t.metricValueSize} />
+        {/* Bottom accent fill */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 3,
+          background: `linear-gradient(90deg, ${accentColor}60, ${accentColor}10)`,
+        }} />
         <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
           bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
       </CardShell>
@@ -113,14 +118,20 @@ function MetricCard({ m, dark }: MetricCardProps) {
         style={{
           background: bg,
           border: `1px solid ${dark ? t.darkSlideBorder : t.slideBorder}`,
-          borderLeft: `3px solid ${accentColor}`,
+          borderLeft: `4px solid ${accentColor}`,
           borderRadius: t.cardRadius,
-          padding: '14px 16px',
+          padding: '20px 20px 18px',
+          overflow: 'hidden',
         }}
       >
         <Label color={mutedColor}>{m.label}</Label>
         {m.sub && <Sub>{m.sub}</Sub>}
         <Value e={m.e} dark={dark} value={m.value} color={accentColor} size={t.metricValueSize} />
+        {/* Bottom tint */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
+          background: `${accentColor}30`,
+        }} />
         <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
           bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
       </CardShell>
@@ -135,9 +146,10 @@ function MetricCard({ m, dark }: MetricCardProps) {
         style={{
           background: bg,
           border: `1px solid ${dark ? t.darkSlideBorder : t.slideBorder}`,
-          borderTop: `2px solid ${accentColor}`,
+          borderTop: `3px solid ${accentColor}`,
           borderRadius: t.cardRadius,
-          padding: '14px 16px 16px',
+          padding: '20px 20px 18px',
+          overflow: 'hidden',
         }}
       >
         <Label color={mutedColor}>{m.label}</Label>
@@ -151,14 +163,14 @@ function MetricCard({ m, dark }: MetricCardProps) {
   }
 
   // ── outline ─────────────────────────────────────────
-  // (Mono Pro: transparent bg, thick black border, generous text)
   return (
     <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
       style={{
         background: 'transparent',
-        border: `1.5px solid ${dark ? t.darkSlideText : t.slideText}`,
+        border: `2px solid ${dark ? t.darkSlideText : t.slideText}`,
         borderRadius: t.cardRadius,
-        padding: '14px 16px',
+        padding: '20px 20px 18px',
+        overflow: 'hidden',
       }}
     >
       <Label color={mutedColor}>{m.label}</Label>
@@ -189,8 +201,8 @@ function Label({ children, color }: { children: React.ReactNode; color?: string 
   const t = useTheme()
   return (
     <div style={{
-      fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-      letterSpacing: '0.7px', marginBottom: 5,
+      fontSize: 13, fontWeight: 700, textTransform: 'uppercase',
+      letterSpacing: '0.8px', marginBottom: 8,
       color: color ?? t.slideMuted,
     }}>
       {children}
@@ -200,7 +212,7 @@ function Label({ children, color }: { children: React.ReactNode; color?: string 
 
 function Sub({ children }: { children: React.ReactNode }) {
   const t = useTheme()
-  return <div style={{ fontSize: 11, color: t.slideMuted, marginBottom: 3 }}>{children}</div>
+  return <div style={{ fontSize: 12, color: t.slideMuted, marginBottom: 4 }}>{children}</div>
 }
 
 function Value({ e, dark, value, color, size, accentBelow }:
@@ -211,15 +223,15 @@ function Value({ e, dark, value, color, size, accentBelow }:
         <EditableField
           e={e}
           dark={dark}
-          style={{ fontSize: size, fontWeight: 800, color, letterSpacing: '-0.5px', display: 'block' }}
+          style={{ fontSize: size, fontWeight: 900, color, letterSpacing: '-1px', display: 'block', lineHeight: 1 }}
         />
       ) : (
-        <div style={{ fontSize: size, fontWeight: 800, color, letterSpacing: '-0.5px' }}>
+        <div style={{ fontSize: size, fontWeight: 900, color, letterSpacing: '-1px', lineHeight: 1 }}>
           {value}
         </div>
       )}
       {accentBelow && (
-        <div style={{ marginTop: 6, height: 2, width: 24, background: accentBelow, borderRadius: 1 }} />
+        <div style={{ marginTop: 10, height: 3, width: 32, background: accentBelow, borderRadius: 2 }} />
       )}
     </div>
   )
@@ -233,12 +245,12 @@ function HideBtn({ show, onHide, bg, muted }:
       onClick={e => { e.stopPropagation(); onHide() }}
       title="Esconder esta métrica"
       style={{
-        position: 'absolute', top: 4, right: 4,
+        position: 'absolute', top: 6, right: 6,
         background: bg, border: 'none',
         borderRadius: 3,
-        width: 16, height: 16,
+        width: 18, height: 18,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 10, color: muted,
+        fontSize: 11, color: muted,
         cursor: 'pointer', lineHeight: 1,
         transition: 'background 0.1s',
       }}
