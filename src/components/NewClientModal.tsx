@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Client, MetaAdAccount } from '../lib/types'
 import { apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
@@ -19,6 +19,7 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
   const [type, setType] = useState<'lead_gen' | 'franchise'>('lead_gen')
   const [color, setColor] = useState(COLORS[0])
   const [logo, setLogo] = useState<string | null>(null)
+  const [logoDragging, setLogoDragging] = useState(false)
   const [units, setUnits] = useState<string[]>([''])
   const [selectedAccount, setSelectedAccount] = useState<MetaAdAccount | null>(null)
   const [loading, setLoading] = useState(false)
@@ -42,6 +43,13 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
     setError(null)
     if (type === 'franchise') { setStep(2) } else { setStep(3) }
   }
+
+  const handleLogoDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setLogoDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) handleLogoFile(file)
+  }, [])
 
   const handleLogoFile = (file: File) => {
     const reader = new FileReader()
@@ -219,35 +227,45 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
                 style={{ display: 'none' }}
                 onChange={e => { if (e.target.files?.[0]) handleLogoFile(e.target.files[0]) }}
               />
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <div
+                onClick={() => !logo && logoRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setLogoDragging(true) }}
+                onDragLeave={() => setLogoDragging(false)}
+                onDrop={handleLogoDrop}
+                style={{
+                  border: `1.5px dashed ${logoDragging ? T.brand : logo ? T.border : T.border}`,
+                  borderRadius: 10,
+                  padding: logo ? '10px 14px' : '18px 14px',
+                  background: logoDragging ? `${T.brand}11` : T.surface,
+                  cursor: logo ? 'default' : 'pointer',
+                  transition: 'border-color 0.15s, background 0.15s',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                }}
+                onMouseEnter={e => { if (!logo) e.currentTarget.style.borderColor = T.brand }}
+                onMouseLeave={e => { if (!logo) e.currentTarget.style.borderColor = T.border }}
+              >
                 {logo ? (
                   <>
                     <img
                       src={logo}
                       alt="Logo"
-                      style={{ height: 36, maxWidth: 120, objectFit: 'contain', borderRadius: 6, border: `1px solid ${T.border}`, padding: 4, background: T.surface }}
+                      style={{ height: 36, maxWidth: 120, objectFit: 'contain', borderRadius: 4, border: `1px solid ${T.border}`, padding: 4, background: '#fff' }}
                     />
+                    <div style={{ flex: 1, fontSize: 12, color: T.muted }}>Arraste para trocar</div>
                     <button
-                      onClick={() => setLogo(null)}
+                      onClick={e => { e.stopPropagation(); setLogo(null) }}
                       style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, color: T.muted, cursor: 'pointer' }}
                     >
                       Remover
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => logoRef.current?.click()}
-                    style={{
-                      background: T.surface, border: `1px dashed ${T.border}`,
-                      borderRadius: 8, padding: '8px 14px',
-                      fontSize: 12, color: T.muted, cursor: 'pointer',
-                      transition: 'border-color 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = T.brand)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
-                  >
-                    + Selecionar imagem
-                  </button>
+                  <div style={{ textAlign: 'center', width: '100%' }}>
+                    <div style={{ fontSize: 22, marginBottom: 4 }}>🖼️</div>
+                    <div style={{ fontSize: 12, color: T.muted }}>
+                      Arraste a imagem aqui ou <span style={{ color: T.brand, fontWeight: 600 }}>clique para selecionar</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </FieldBlock>

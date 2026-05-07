@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import type { Client, MetaAdAccount, Report, Screen } from '../lib/types'
 import { apiReports, apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
@@ -20,6 +20,7 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
   const [savingAccount, setSavingAccount] = useState(false)
   const [logo, setLogo] = useState<string | null | undefined>(client.logo)
   const [savingLogo, setSavingLogo] = useState(false)
+  const [logoDragging, setLogoDragging] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -44,6 +45,13 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
       showToast('Erro ao excluir relatório')
     }
   }
+
+  const handleLogoDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setLogoDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) handleLogoFile(file)
+  }, [])
 
   const handleLogoFile = (file: File) => {
     const reader = new FileReader()
@@ -140,53 +148,57 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
         style={{ display: 'none' }}
         onChange={e => { if (e.target.files?.[0]) handleLogoFile(e.target.files[0]) }}
       />
-      <div style={{
-        background: T.surface,
-        border: `0.5px solid ${T.border}`,
-        borderRadius: 12,
-        padding: '16px 20px',
-        marginBottom: 16,
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 6 }}>
-              Logo do Cliente
-            </div>
-            {logo ? (
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 8 }}>
+          Logo do Cliente
+        </div>
+        <div
+          onDragOver={e => { e.preventDefault(); setLogoDragging(true) }}
+          onDragLeave={() => setLogoDragging(false)}
+          onDrop={handleLogoDrop}
+          onClick={() => !savingLogo && logoInputRef.current?.click()}
+          style={{
+            background: logoDragging ? `${T.brand}11` : T.surface,
+            border: `1.5px dashed ${logoDragging ? T.brand : T.border}`,
+            borderRadius: 12,
+            padding: '16px 20px',
+            cursor: savingLogo ? 'default' : 'pointer',
+            transition: 'border-color 0.15s, background 0.15s',
+            display: 'flex', alignItems: 'center', gap: 14,
+          }}
+          onMouseEnter={e => { if (!savingLogo) e.currentTarget.style.borderColor = T.brand }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = logoDragging ? T.brand : T.border }}
+        >
+          {logo ? (
+            <>
               <img
                 src={logo}
                 alt={client.name}
-                style={{ height: 32, maxWidth: 120, objectFit: 'contain', borderRadius: 4 }}
+                style={{ height: 40, maxWidth: 130, objectFit: 'contain', borderRadius: 6, border: `1px solid ${T.border}`, padding: 4, background: '#fff' }}
               />
-            ) : (
-              <div style={{ fontSize: 13, color: T.muted }}>Sem logo — avatar texto será usado</div>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
-            {savingLogo && <span style={{ fontSize: 12, color: T.muted }}>Salvando...</span>}
-            {logo && !savingLogo && (
-              <button
-                onClick={handleRemoveLogo}
-                style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 7, padding: '5px 10px', fontSize: 12, color: T.muted, cursor: 'pointer' }}
-              >
-                Remover
-              </button>
-            )}
-            {!savingLogo && (
-              <button
-                onClick={() => logoInputRef.current?.click()}
-                style={{
-                  background: logo ? 'none' : T.brand,
-                  color: logo ? T.muted : '#fff',
-                  border: logo ? `1px solid ${T.border}` : 'none',
-                  borderRadius: 7, padding: '6px 13px',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                }}
-              >
-                {logo ? 'Trocar' : 'Enviar logo →'}
-              </button>
-            )}
-          </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Logo ativo</div>
+                <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                  {savingLogo ? 'Salvando...' : 'Arraste para trocar ou clique'}
+                </div>
+              </div>
+              {!savingLogo && (
+                <button
+                  onClick={e => { e.stopPropagation(); handleRemoveLogo() }}
+                  style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 7, padding: '5px 10px', fontSize: 12, color: T.muted, cursor: 'pointer', flexShrink: 0 }}
+                >
+                  Remover
+                </button>
+              )}
+            </>
+          ) : (
+            <div style={{ width: '100%', textAlign: 'center', padding: '8px 0' }}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>🖼️</div>
+              <div style={{ fontSize: 13, color: T.muted }}>
+                {savingLogo ? 'Salvando...' : <>Arraste a imagem aqui ou <span style={{ color: T.brand, fontWeight: 600 }}>clique para selecionar</span></>}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
