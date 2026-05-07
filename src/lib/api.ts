@@ -25,6 +25,8 @@ export const apiClients = {
   get: (id: string) => request<Client>(`/api/clients/${id}`),
   create: (body: { name: string; type: string; description?: string; meta_account_id?: string; color?: string; units?: { name: string }[] }) =>
     request<Client>('/api/clients', { method: 'POST', body: JSON.stringify(body) }),
+  rename: (id: string, name: string) =>
+    request<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
   delete: (id: string) => request<{ ok: boolean }>(`/api/clients/${id}`, { method: 'DELETE' }),
 }
 

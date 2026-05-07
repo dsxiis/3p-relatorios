@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Client, Screen } from '../lib/types'
 import { apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
@@ -36,6 +36,16 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
     setShowModal(false)
     showToast(`✓ ${client.name} criado com sucesso`)
     fetchClients()
+  }
+
+  const handleRenamed = (id: string, name: string) => {
+    setClients(prev => prev.map(c => c.id === id ? { ...c, name } : c))
+    showToast(`✓ Cliente renomeado`)
+  }
+
+  const handleDeleted = (id: string) => {
+    setClients(prev => prev.filter(c => c.id !== id))
+    showToast(`✓ Cliente removido`)
   }
 
   return (
@@ -103,6 +113,9 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
               client={c}
               delay={i * 60}
               onClick={() => { onSelectClient(c); onNavigate('client', c) }}
+              onRenamed={handleRenamed}
+              onDeleted={handleDeleted}
+              showToast={showToast}
             />
           ))}
         </div>
@@ -147,22 +160,65 @@ interface ClientCardProps {
   client: Client
   delay: number
   onClick: () => void
+  onRenamed: (id: string, name: string) => void
+  onDeleted: (id: string) => void
+  showToast: (msg: string) => void
 }
 
-function ClientCard({ client, delay, onClick }: ClientCardProps) {
+function ClientCard({ client, delay, onClick, onRenamed, onDeleted, showToast }: ClientCardProps) {
   const initials = client.name.slice(0, 2).toUpperCase()
   const typeLabel = client.type === 'franchise' ? 'Franquia' : 'Lead Gen'
   const cardColor = (client as any).color ?? '#8B35E8'
 
+  const [renaming, setRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState(client.name)
+  const [confirming, setConfirming] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+  const renameRef = useRef<HTMLInputElement>(null)
+
+  const startRename = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setRenameValue(client.name)
+    setConfirming(false)
+    setRenaming(true)
+    setTimeout(() => renameRef.current?.select(), 50)
+  }
+
+  const commitRename = async () => {
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed === client.name) { setRenaming(false); return }
+    setActionLoading(true)
+    try {
+      await apiClients.rename(client.id, trimmed)
+      onRenamed(client.id, trimmed)
+    } catch {
+      showToast('Erro ao renomear cliente')
+    } finally {
+      setActionLoading(false)
+      setRenaming(false)
+    }
+  }
+
+  const commitDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setActionLoading(true)
+    try {
+      await apiClients.delete(client.id)
+      onDeleted(client.id)
+    } catch {
+      showToast('Erro ao remover cliente')
+      setActionLoading(false)
+      setConfirming(false)
+    }
+  }
+
   return (
     <div
-      onClick={onClick}
       style={{
         background: T.surface,
         border: `0.5px solid ${T.border}`,
         borderRadius: 12,
         padding: '16px 20px',
-        cursor: 'pointer',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -173,7 +229,11 @@ function ClientCard({ client, delay, onClick }: ClientCardProps) {
       onMouseEnter={e => (e.currentTarget.style.borderColor = T.borderHover)}
       onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
     >
-      <div style={{ display: 'flex', gap: 13, alignItems: 'center' }}>
+      {/* Left: avatar + name */}
+      <div
+        onClick={renaming ? undefined : onClick}
+        style={{ display: 'flex', gap: 13, alignItems: 'center', flex: 1, cursor: renaming ? 'default' : 'pointer', minWidth: 0 }}
+      >
         <div style={{
           width: 40, height: 40, borderRadius: 10,
           background: `linear-gradient(135deg, ${cardColor}cc, ${cardColor})`,
@@ -183,25 +243,106 @@ function ClientCard({ client, delay, onClick }: ClientCardProps) {
         }}>
           {initials}
         </div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{client.name}</div>
+        <div style={{ minWidth: 0 }}>
+          {renaming ? (
+            <input
+              ref={renameRef}
+              value={renameValue}
+              onChange={e => setRenameValue(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') { e.preventDefault(); commitRename() }
+                if (e.key === 'Escape') { setRenaming(false) }
+              }}
+              onBlur={commitRename}
+              onClick={e => e.stopPropagation()}
+              disabled={actionLoading}
+              style={{
+                fontSize: 14, fontWeight: 700, color: T.text,
+                background: T.surface2, border: `1.5px solid ${T.brand}`,
+                borderRadius: 6, padding: '3px 8px', outline: 'none',
+                width: 200,
+              }}
+            />
+          ) : (
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {client.name}
+            </div>
+          )}
           <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>{typeLabel}</div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 10, color: T.hint }}>Último relatório</div>
-          <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>—</div>
-        </div>
-        <div style={{
-          background: T.brand,
-          color: '#fff',
-          borderRadius: 7,
-          padding: '6px 13px',
-          fontSize: 12,
-          fontWeight: 600,
-        }}>
+      {/* Right */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+
+        {/* Rename btn */}
+        <button
+          onClick={startRename}
+          title="Renomear"
+          style={{
+            background: 'none', border: `1px solid ${T.border}`,
+            borderRadius: 7, padding: '5px 10px',
+            fontSize: 13, color: T.muted, cursor: 'pointer',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = T.brand; e.currentTarget.style.color = T.brand }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.muted }}
+        >
+          ✏
+        </button>
+
+        {/* Delete btn / confirm inline */}
+        {confirming ? (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: T.muted, whiteSpace: 'nowrap' }}>Excluir?</span>
+            <button
+              onClick={e => { e.stopPropagation(); setConfirming(false) }}
+              style={{
+                background: T.surface2, border: `1px solid ${T.border}`,
+                borderRadius: 7, padding: '5px 10px',
+                fontSize: 12, fontWeight: 600, color: T.muted, cursor: 'pointer',
+              }}
+            >
+              Não
+            </button>
+            <button
+              onClick={commitDelete}
+              disabled={actionLoading}
+              style={{
+                background: '#ef4444', border: 'none',
+                borderRadius: 7, padding: '5px 12px',
+                fontSize: 12, fontWeight: 700, color: '#fff',
+                cursor: actionLoading ? 'not-allowed' : 'pointer',
+                opacity: actionLoading ? 0.6 : 1,
+              }}
+            >
+              {actionLoading ? '…' : 'Sim'}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); setRenaming(false); setConfirming(true) }}
+            title="Excluir cliente"
+            style={{
+              background: 'none', border: `1px solid ${T.border}`,
+              borderRadius: 7, padding: '5px 10px',
+              fontSize: 13, color: T.muted, cursor: 'pointer',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.muted }}
+          >
+            🗑
+          </button>
+        )}
+
+        {/* Ver */}
+        <div
+          onClick={e => { e.stopPropagation(); onClick() }}
+          style={{
+            background: T.brand, color: '#fff',
+            borderRadius: 7, padding: '6px 13px',
+            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
           Ver →
         </div>
       </div>
