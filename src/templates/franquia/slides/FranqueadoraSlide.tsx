@@ -27,7 +27,7 @@ export function FranqueadoraSlide({ clientName, period, franchiseHistory, eHisto
           background: t.accentGreen, flexShrink: 0,
         }} />
         <span style={{
-          fontSize: 10, fontWeight: 700, color: t.accentGreen,
+          fontSize: 12, fontWeight: 700, color: t.accentGreen,
           textTransform: 'uppercase', letterSpacing: '1.2px',
         }}>
           Histórico de Otimizações — {period}
@@ -40,15 +40,15 @@ export function FranqueadoraSlide({ clientName, period, franchiseHistory, eHisto
           {franchiseHistory.map((item, i) => (
             <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <div style={{
-                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
                 background: t.accentGreenDim,
                 border: `1px solid ${t.accentGreen}44`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 700, color: t.accentGreen,
+                fontSize: 12, fontWeight: 700, color: t.accentGreen,
               }}>
                 {i + 1}
               </div>
-              <p style={{ fontSize: 13, color: t.darkSlideText, lineHeight: 1.6, margin: 0 }}>{item}</p>
+              <p style={{ fontSize: 15, color: t.darkSlideText, lineHeight: 1.7, margin: 0 }}>{item}</p>
             </div>
           ))}
           <button

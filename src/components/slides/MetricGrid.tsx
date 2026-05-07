@@ -30,7 +30,7 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
       <div style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: t.metricCardVariant === 'outline' ? 8 : 10,
+        gap: t.metricCardVariant === 'outline' ? 12 : 14,
       }}>
         {visible.map((m, i) => (
           <MetricCard key={i} m={m} dark={dark} />
@@ -94,7 +94,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
 
     return (
       <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
-        style={{ background: bg, border: `1px solid ${border}`, borderRadius: t.cardRadius, padding: '12px 14px' }}
+        style={{ background: bg, border: `1px solid ${border}`, borderRadius: t.cardRadius, padding: '16px 18px' }}
       >
         <Label>{m.label}</Label>
         {m.sub && <Sub>{m.sub}</Sub>}
@@ -115,7 +115,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
           border: `1px solid ${dark ? t.darkSlideBorder : t.slideBorder}`,
           borderLeft: `3px solid ${accentColor}`,
           borderRadius: t.cardRadius,
-          padding: '10px 12px',
+          padding: '14px 16px',
         }}
       >
         <Label color={mutedColor}>{m.label}</Label>
@@ -137,7 +137,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
           border: `1px solid ${dark ? t.darkSlideBorder : t.slideBorder}`,
           borderTop: `2px solid ${accentColor}`,
           borderRadius: t.cardRadius,
-          padding: '10px 12px 12px',
+          padding: '14px 16px 16px',
         }}
       >
         <Label color={mutedColor}>{m.label}</Label>
@@ -158,7 +158,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
         background: 'transparent',
         border: `1.5px solid ${dark ? t.darkSlideText : t.slideText}`,
         borderRadius: t.cardRadius,
-        padding: '10px 12px',
+        padding: '14px 16px',
       }}
     >
       <Label color={mutedColor}>{m.label}</Label>
@@ -189,8 +189,8 @@ function Label({ children, color }: { children: React.ReactNode; color?: string 
   const t = useTheme()
   return (
     <div style={{
-      fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-      letterSpacing: '0.6px', marginBottom: 3,
+      fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+      letterSpacing: '0.7px', marginBottom: 5,
       color: color ?? t.slideMuted,
     }}>
       {children}
@@ -200,7 +200,7 @@ function Label({ children, color }: { children: React.ReactNode; color?: string 
 
 function Sub({ children }: { children: React.ReactNode }) {
   const t = useTheme()
-  return <div style={{ fontSize: 9, color: t.slideMuted, marginBottom: 2 }}>{children}</div>
+  return <div style={{ fontSize: 11, color: t.slideMuted, marginBottom: 3 }}>{children}</div>
 }
 
 function Value({ e, dark, value, color, size, accentBelow }:

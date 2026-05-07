@@ -25,14 +25,14 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
             autoFocus
             style={{
               width: '100%',
-              minHeight: 100,
+              minHeight: 130,
               background: bg,
               border: `1.5px solid ${t.accent}`,
-              borderRadius: 6,
-              padding: '10px 12px',
-              fontSize: 12,
+              borderRadius: 8,
+              padding: '14px 16px',
+              fontSize: 14,
               color: text,
-              lineHeight: 1.7,
+              lineHeight: 1.75,
               resize: 'vertical',
               outline: 'none',
               fontFamily: 'inherit',
@@ -42,13 +42,13 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
           <button
             onClick={e.save}
             style={{
-              marginTop: 6,
+              marginTop: 8,
               background: t.accent,
               color: '#fff',
               border: 'none',
-              borderRadius: 5,
-              padding: '5px 14px',
-              fontSize: 11,
+              borderRadius: 6,
+              padding: '7px 18px',
+              fontSize: 12,
               fontWeight: 700,
               cursor: 'pointer',
             }}
@@ -61,13 +61,13 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
           style={{
             background: bg,
             border: `1px solid ${border}`,
-            borderRadius: 6,
-            padding: '10px 36px 10px 12px',
-            fontSize: 12,
+            borderRadius: 8,
+            padding: '14px 44px 14px 16px',
+            fontSize: 14,
             color: e.value ? text : muted,
-            lineHeight: 1.7,
+            lineHeight: 1.75,
             whiteSpace: 'pre-wrap',
-            minHeight: 44,
+            minHeight: 56,
             cursor: 'text',
             position: 'relative',
           }}
@@ -77,9 +77,9 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
           <button
             onClick={ev => { ev.stopPropagation(); e.start() }}
             style={{
-              position: 'absolute', top: 8, right: 8,
+              position: 'absolute', top: 10, right: 10,
               background: 'none', border: 'none',
-              cursor: 'pointer', fontSize: 13, color: muted,
+              cursor: 'pointer', fontSize: 15, color: muted,
               padding: 2,
             }}
           >

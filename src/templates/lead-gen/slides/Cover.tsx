@@ -14,24 +14,24 @@ export function Cover({ eClient, ePeriod }: CoverProps) {
   return (
     <SlideShell dark style={{
       background: t.coverBg,
-      minHeight: 200,
+      minHeight: 260,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
     }}>
       <SlideLogo clientName={eClient.value} dark position="top-right" />
-      <div style={{ fontSize: 11, color: t.coverAccentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 12 }}>
+      <div style={{ fontSize: 13, color: t.coverAccentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 16 }}>
         Relatório de Performance
       </div>
-      <h1 style={{ fontSize: 32, fontWeight: 900, color: t.coverTitleColor, margin: 0, letterSpacing: '-1px', lineHeight: 1.1 }}>
-        <EditableField e={eClient} dark style={{ fontSize: 32, fontWeight: 900, color: t.coverTitleColor, letterSpacing: '-1px' }} placeholder="Nome do cliente" />
+      <h1 style={{ fontSize: 42, fontWeight: 900, color: t.coverTitleColor, margin: 0, letterSpacing: '-1.5px', lineHeight: 1.1 }}>
+        <EditableField e={eClient} dark style={{ fontSize: 42, fontWeight: 900, color: t.coverTitleColor, letterSpacing: '-1.5px' }} placeholder="Nome do cliente" />
       </h1>
-      <div style={{ display: 'flex', gap: 16, marginTop: 10, alignItems: 'center' }}>
-        <EditableField e={ePeriod} dark style={{ fontSize: 14, color: t.coverSubColor, fontWeight: 500 }} placeholder="Período" />
+      <div style={{ display: 'flex', gap: 16, marginTop: 14, alignItems: 'center' }}>
+        <EditableField e={ePeriod} dark style={{ fontSize: 16, color: t.coverSubColor, fontWeight: 500 }} placeholder="Período" />
         <div style={{
-          padding: '3px 10px', borderRadius: 20,
+          padding: '4px 12px', borderRadius: 20,
           background: t.coverBadgeBg, color: t.coverBadgeText,
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.5px',
+          fontSize: 12, fontWeight: 700, letterSpacing: '0.5px',
         }}>
           Lead Gen
         </div>

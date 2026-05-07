@@ -5,8 +5,8 @@ interface EditableImageProps {
   e: EditState          // value = base64 data URL or ''
   label?: string
   dark?: boolean
-  width?: number
-  height?: number
+  width?: number | string
+  height?: number | string
 }
 
 /** Compress image to JPEG data URL with max dimensions */
@@ -41,6 +41,8 @@ export function EditableImage({
   width = 90,
   height = 110,
 }: EditableImageProps) {
+  // allow '100%' string widths for flex/grid children
+
   const inputRef = useRef<HTMLInputElement>(null)
   const hasImage = Boolean(e.value)
 

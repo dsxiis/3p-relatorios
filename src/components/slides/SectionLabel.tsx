@@ -26,13 +26,13 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
           display: 'inline-flex', alignItems: 'center',
           background: dark ? `${color}22` : `${color}18`,
           color,
-          borderRadius: 4,
-          padding: '2px 7px',
-          fontSize: 9,
+          borderRadius: 5,
+          padding: '4px 11px',
+          fontSize: 11,
           fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.8px',
-          marginBottom: 6,
+          marginBottom: 10,
           ...style,
         }}>
           {children}
@@ -42,14 +42,14 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
     case 'underline':
       return (
         <div style={{
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: 700,
           color,
           textTransform: 'uppercase',
           letterSpacing: '1.2px',
-          paddingBottom: 4,
+          paddingBottom: 5,
           borderBottom: `2px solid ${color}`,
-          marginBottom: 8,
+          marginBottom: 10,
           display: 'inline-block',
           ...style,
         }}>
@@ -60,18 +60,18 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
     case 'dot':
       return (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          marginBottom: 6,
+          display: 'flex', alignItems: 'center', gap: 8,
+          marginBottom: 10,
           ...style,
         }}>
           <div style={{
-            width: 6, height: 6,
+            width: 8, height: 8,
             borderRadius: '50%',
             background: color,
             flexShrink: 0,
           }} />
           <span style={{
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: 700,
             color: muted,
             textTransform: 'uppercase',
@@ -85,12 +85,12 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
     case 'rule':
       return (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          marginBottom: 8,
+          display: 'flex', alignItems: 'center', gap: 12,
+          marginBottom: 10,
           ...style,
         }}>
           <span style={{
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: 700,
             color: muted,
             textTransform: 'uppercase',
