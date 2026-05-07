@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Screen, Client, Report } from './lib/types'
+import { apiClients, apiReports } from './lib/api'
 import { Sidebar } from './components/Sidebar'
 import { Toast } from './components/Toast'
 import { Dashboard } from './screens/Dashboard'
@@ -10,31 +11,89 @@ import { ReportView } from './screens/ReportView'
 import { TemplatesScreen } from './screens/TemplatesScreen'
 import './styles/global.css'
 
+function parseHash() {
+  const hash = window.location.hash.replace(/^#\/?/, '')
+  const parts = hash.split('/')
+  return { route: parts[0] || '', id: parts[1] || '', id2: parts[2] || '' }
+}
+
+function setHash(path: string) {
+  history.replaceState(null, '', `#/${path}`)
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [client, setClient] = useState<Client | null>(null)
   const [report, setReport] = useState<Report | null>(null)
   const [reportId, setReportId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [restoring, setRestoring] = useState(true)
 
   const showToast = (msg: string) => {
     setToast(msg)
     setTimeout(() => setToast(null), 2800)
   }
 
+  // Restore state from URL hash on mount
+  useEffect(() => {
+    const { route, id } = parseHash()
+
+    const restore = async () => {
+      try {
+        if (route === 'client' && id) {
+          const c = await apiClients.get(id)
+          setClient(c)
+          setScreen('client')
+        } else if (route === 'form' && id) {
+          const c = await apiClients.get(id)
+          setClient(c)
+          setScreen('form')
+        } else if (route === 'report' && id) {
+          const r = await apiReports.get(id)
+          const c = await apiClients.get(r.client_id)
+          setReport(r)
+          setClient(c)
+          setScreen('report')
+        }
+      } catch {
+        setHash('')
+      } finally {
+        setRestoring(false)
+      }
+    }
+
+    restore()
+  }, [])
+
   const navigate = (sc: Screen, cl?: Client) => {
     setScreen(sc)
     if (cl !== undefined) setClient(cl)
+    const c = cl ?? client
+
+    if (sc === 'dashboard') { setClient(null); setReport(null); setHash('') }
+    else if (sc === 'client' && c) setHash(`client/${c.id}`)
+    else if (sc === 'form' && c) setHash(`form/${c.id}`)
+    else if (sc === 'templates') setHash('templates')
   }
 
   const startGeneration = (id: string) => {
     setReportId(id)
     setScreen('generating')
+    setHash(`generating/${id}`)
   }
 
   const handleReportReady = (r: Report) => {
     setReport(r)
     setScreen('report')
+    setHash(`report/${r.id}`)
+  }
+
+  if (restoring) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--hint)', fontSize: 14 }}>
+        Carregando...
+      </div>
+    )
   }
 
   const showSidebar = ['dashboard', 'client', 'form', 'templates'].includes(screen)
@@ -47,6 +106,8 @@ export default function App() {
           onNavigate={sc => {
             if (sc === 'dashboard') { setClient(null); setReport(null) }
             setScreen(sc)
+            if (sc === 'dashboard') setHash('')
+            else setHash(sc)
           }}
         />
       )}
@@ -57,14 +118,14 @@ export default function App() {
         )}
 
         {screen === 'templates' && (
-          <TemplatesScreen onBack={() => setScreen('dashboard')} />
+          <TemplatesScreen onBack={() => navigate('dashboard')} />
         )}
 
         {screen === 'client' && client && (
           <ClientView
             client={client}
             onNavigate={navigate}
-            onSelectReport={setReport}
+            onSelectReport={r => { setReport(r); setHash(`report/${r.id}`) }}
             showToast={showToast}
             onClientUpdated={updated => setClient(updated)}
           />
@@ -85,7 +146,7 @@ export default function App() {
             reportId={reportId}
             client={client}
             onReady={handleReportReady}
-            onError={(msg) => { showToast(msg); setScreen('form') }}
+            onError={(msg) => { showToast(msg); setScreen('form'); if (client) setHash(`form/${client.id}`) }}
           />
         )}
 
