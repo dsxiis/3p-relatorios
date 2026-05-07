@@ -216,6 +216,8 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
         transition: 'border-color 0.15s, box-shadow 0.15s',
         animation: `rise 0.4s cubic-bezier(.25,.46,.45,.94) both`,
         animationDelay: `${delay}ms`,
+        position: 'relative',
+        zIndex: menuOpen ? 10 : 1,
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderHover; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none' }}
