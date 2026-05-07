@@ -15,13 +15,30 @@ interface ClientViewProps {
 export function ClientView({ client, onNavigate, onSelectReport, showToast, onClientUpdated }: ClientViewProps) {
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
-  const [metaAccount, setMetaAccount] = useState<string | null>(client.meta_account_id)
+  const [metaAccount, setMetaAccount] = useState<string | null>(client.meta_account_id ?? null)
   const [linkingAccount, setLinkingAccount] = useState(false)
   const [savingAccount, setSavingAccount] = useState(false)
   const [logo, setLogo] = useState<string | null | undefined>(client.logo)
+  const [clientColor, setClientColor] = useState<string>((client as any).color ?? '#8B35E8')
+  const [clientName, setClientName] = useState(client.name)
+  const [clientDescription, setClientDescription] = useState<string | null>(client.description ?? null)
   const [savingLogo, setSavingLogo] = useState(false)
   const [logoDragging, setLogoDragging] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch fresh client data on mount so we always show the latest logo/meta
+  useEffect(() => {
+    apiClients.get(client.id)
+      .then(fresh => {
+        setLogo(fresh.logo ?? null)
+        setMetaAccount(fresh.meta_account_id ?? null)
+        setClientColor((fresh as any).color ?? '#8B35E8')
+        setClientName(fresh.name)
+        setClientDescription(fresh.description ?? null)
+        onClientUpdated?.(fresh)
+      })
+      .catch(() => {/* use prop data as fallback */})
+  }, [client.id])
 
   useEffect(() => {
     apiReports.list(client.id)
@@ -45,13 +62,6 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
       showToast('Erro ao excluir relatório')
     }
   }
-
-  const handleLogoDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setLogoDragging(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file && file.type.startsWith('image/')) handleLogoFile(file)
-  }, [])
 
   const handleLogoFile = (file: File) => {
     const reader = new FileReader()
@@ -83,6 +93,13 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
     reader.readAsDataURL(file)
   }
 
+  const handleLogoDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setLogoDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) handleLogoFile(file)
+  }, [handleLogoFile])
+
   const handleRemoveLogo = async () => {
     setSavingLogo(true)
     try {
@@ -97,7 +114,8 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
     }
   }
 
-  const typeLabel = client.type === 'franchise' ? 'Franquia' : 'Lead Gen — B2B'
+  const typeLabel = client.type === 'franchise' ? 'Franquia' : 'Lead Gen'
+  const initials = clientName.slice(0, 2).toUpperCase()
 
   return (
     <div style={{ padding: '38px 42px', animation: 'fadein 0.25s ease' }}>
@@ -115,19 +133,25 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <div style={{
             width: 50, height: 50, borderRadius: 12,
-            background: 'linear-gradient(135deg,#3D1580,#8B35E8)',
+            background: logo ? 'transparent' : `linear-gradient(135deg, ${clientColor}cc, ${clientColor})`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 17, fontWeight: 800, color: '#fff',
+            fontSize: 16, fontWeight: 800, color: '#fff',
+            flexShrink: 0, overflow: 'hidden',
+            border: logo ? `1px solid ${T.border}` : 'none',
           }}>
-            {client.name[0]}
+            {logo
+              ? <img src={logo} alt={clientName} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }} />
+              : initials
+            }
           </div>
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px', color: T.text }}>
-              {client.name}
+              {clientName}
             </h1>
             <div style={{ fontSize: 14, color: T.muted, marginTop: 4 }}>
               {typeLabel}
-              {client.description ? ` · ${client.description}` : ''}
+              {clientDescription ? ` · ${clientDescription}` : ''}
+              {metaAccount && <span style={{ marginLeft: 8, color: '#22c55e', fontSize: 13 }}>● Meta vinculado</span>}
             </div>
           </div>
         </div>
