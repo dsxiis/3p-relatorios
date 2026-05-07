@@ -62,10 +62,10 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast }: Cl
             {client.name[0]}
           </div>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.4px', color: T.text }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px', color: T.text }}>
               {client.name}
             </h1>
-            <div style={{ fontSize: 12, color: T.muted, marginTop: 3 }}>
+            <div style={{ fontSize: 14, color: T.muted, marginTop: 4 }}>
               {typeLabel}
               {client.description ? ` · ${client.description}` : ''}
             </div>
@@ -82,8 +82,8 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast }: Cl
 
       {/* Reports list */}
       <div style={{
-        fontSize: 9, fontWeight: 700, color: T.hint,
-        letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 13,
+        fontSize: 11, fontWeight: 700, color: T.hint,
+        letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 14,
       }}>
         Histórico
       </div>
@@ -98,7 +98,7 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast }: Cl
           padding: '28px 24px',
           textAlign: 'center',
           color: T.hint,
-          fontSize: 13,
+          fontSize: 15,
         }}>
           Nenhum relatório gerado ainda. Clique em "+ Novo relatório" para começar.
         </div>
@@ -173,8 +173,8 @@ function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {
           background: statusColor, flexShrink: 0,
         }} />
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{report.period_label}</div>
-          <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>{report.period_label}</div>
+          <div style={{ fontSize: 13, color: T.muted, marginTop: 2 }}>
             Gerado em {formattedDate} · {statusLabel}
           </div>
         </div>
@@ -185,7 +185,7 @@ function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {
         {confirmDelete ? (
           /* Inline confirmation */
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#ff6b6b', fontWeight: 600 }}>
+            <span style={{ fontSize: 13, color: '#ff6b6b', fontWeight: 600 }}>
               Excluir permanentemente?
             </span>
             <button
@@ -196,8 +196,8 @@ function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {
                 color: '#fff',
                 border: 'none',
                 borderRadius: 5,
-                padding: '4px 11px',
-                fontSize: 11,
+                padding: '5px 13px',
+                fontSize: 13,
                 fontWeight: 700,
                 cursor: deleting ? 'not-allowed' : 'pointer',
                 opacity: deleting ? 0.7 : 1,
@@ -211,8 +211,8 @@ function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {
                 background: 'none',
                 border: `1px solid ${T.border}`,
                 borderRadius: 5,
-                padding: '4px 10px',
-                fontSize: 11,
+                padding: '5px 12px',
+                fontSize: 13,
                 color: T.muted,
                 cursor: 'pointer',
               }}

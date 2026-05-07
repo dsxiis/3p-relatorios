@@ -129,10 +129,14 @@ export function EditableImage({
             </div>
           </>
         ) : (
-          <div style={{ textAlign: 'center', padding: 8 }}>
-            <div style={{ fontSize: 22, marginBottom: 4 }}>📷</div>
-            <div style={{ fontSize: 9, color: muted, fontWeight: 600, lineHeight: 1.4 }}>
-              clique ou<br />arraste
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', gap: 8, padding: 16, width: '100%', height: '100%',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 32 }}>📷</div>
+            <div style={{ fontSize: 13, color: muted, fontWeight: 600, lineHeight: 1.5 }}>
+              Clique ou arraste<br />para adicionar imagem
             </div>
           </div>
         )}

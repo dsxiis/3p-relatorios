@@ -27,12 +27,12 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
           background: dark ? `${color}22` : `${color}18`,
           color,
           borderRadius: 5,
-          padding: '4px 11px',
-          fontSize: 11,
+          padding: '5px 13px',
+          fontSize: 13,
           fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.8px',
-          marginBottom: 10,
+          marginBottom: 12,
           ...style,
         }}>
           {children}
@@ -42,14 +42,14 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
     case 'underline':
       return (
         <div style={{
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: 700,
           color,
           textTransform: 'uppercase',
           letterSpacing: '1.2px',
-          paddingBottom: 5,
+          paddingBottom: 6,
           borderBottom: `2px solid ${color}`,
-          marginBottom: 10,
+          marginBottom: 12,
           display: 'inline-block',
           ...style,
         }}>
@@ -71,7 +71,7 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
             flexShrink: 0,
           }} />
           <span style={{
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 700,
             color: muted,
             textTransform: 'uppercase',
@@ -90,7 +90,7 @@ export function SectionLabel({ children, dark = false, style }: SectionLabelProp
           ...style,
         }}>
           <span style={{
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 700,
             color: muted,
             textTransform: 'uppercase',

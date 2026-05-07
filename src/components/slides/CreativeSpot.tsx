@@ -51,8 +51,8 @@ export function CreativeSpot({
     }}>
       {/* Label strip */}
       <div style={{
-        padding: '8px 12px',
-        fontSize: 10,
+        padding: '10px 14px',
+        fontSize: 12,
         fontWeight: 700,
         color: muted,
         textTransform: 'uppercase',
@@ -85,48 +85,48 @@ export function CreativeSpot({
       {/* Metrics */}
       {metrics && (
         <div style={{
-          padding: '10px 12px',
+          padding: '12px 14px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 5,
+          gap: 8,
           borderTop: `1px solid ${border}`,
         }}>
           {metrics.clicks !== undefined && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 15 }}>
               <span style={{ color: muted, fontWeight: 500 }}>Cliques</span>
               {eClicks
-                ? <EditableField e={eClicks} style={{ fontSize: 13, fontWeight: 700, color: text }} />
+                ? <EditableField e={eClicks} style={{ fontSize: 15, fontWeight: 700, color: text }} />
                 : <span style={{ fontWeight: 700, color: text }}>{metrics.clicks}</span>
               }
             </div>
           )}
           {metrics.leads !== undefined && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 15 }}>
               <span style={{ color: muted, fontWeight: 500 }}>Leads</span>
               {eLeads
-                ? <EditableField e={eLeads} style={{ fontSize: 13, fontWeight: 700, color: text }} />
+                ? <EditableField e={eLeads} style={{ fontSize: 15, fontWeight: 700, color: text }} />
                 : <span style={{ fontWeight: 700, color: text }}>{metrics.leads}</span>
               }
             </div>
           )}
           {metrics.messages !== undefined && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 15 }}>
               <span style={{ color: muted, fontWeight: 500 }}>Mensagens</span>
               {eMessages
-                ? <EditableField e={eMessages} style={{ fontSize: 13, fontWeight: 700, color: text }} />
+                ? <EditableField e={eMessages} style={{ fontSize: 15, fontWeight: 700, color: text }} />
                 : <span style={{ fontWeight: 700, color: text }}>{metrics.messages}</span>
               }
             </div>
           )}
           {metrics.cpl !== undefined && (
             <div style={{
-              display: 'flex', justifyContent: 'space-between', fontSize: 14,
-              marginTop: 2, paddingTop: 6,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 17,
+              marginTop: 4, paddingTop: 8,
               borderTop: `1px solid ${border}`,
             }}>
               <span style={{ color: muted, fontWeight: 500 }}>CPL</span>
               {eCpl
-                ? <EditableField e={eCpl} style={{ fontSize: 14, fontWeight: 800, color: t.accent }} />
+                ? <EditableField e={eCpl} style={{ fontSize: 17, fontWeight: 800, color: t.accent }} />
                 : <span style={{ fontWeight: 800, color: t.accent }}>R$ {metrics.cpl.toFixed(2)}</span>
               }
             </div>

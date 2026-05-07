@@ -18,14 +18,15 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', ...style }}>
       {e.active ? (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
           <textarea
             value={e.value}
             onChange={ev => e.change(ev.target.value)}
             autoFocus
             style={{
               width: '100%',
-              minHeight: 160,
+              flex: 1,
+              minHeight: 120,
               background: bg,
               border: `1.5px solid ${t.accent}`,
               borderRadius: 10,
@@ -33,7 +34,7 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
               fontSize: 18,
               color: text,
               lineHeight: 1.75,
-              resize: 'vertical',
+              resize: 'none',
               outline: 'none',
               fontFamily: 'inherit',
               boxSizing: 'border-box',

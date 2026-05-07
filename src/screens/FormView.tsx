@@ -112,10 +112,10 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
           ← Voltar
         </button>
 
-        <h1 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.3px', color: T.text, marginBottom: 4 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.4px', color: T.text, marginBottom: 4 }}>
           Escolha o template
         </h1>
-        <p style={{ color: T.muted, fontSize: 13, marginBottom: 24 }}>
+        <p style={{ color: T.muted, fontSize: 15, marginBottom: 24 }}>
           {client.name} · Clique no template para ver o visual
         </p>
 
@@ -146,10 +146,10 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
         }}>
           <ThemePreviewMini theme={selectedTheme} width={160} style={{ borderRadius: 6, flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, marginBottom: 6 }}>
               {selectedTheme.emoji} {selectedTheme.name}
             </div>
-            <div style={{ fontSize: 12, color: T.muted, lineHeight: 1.5, marginBottom: 14 }}>
+            <div style={{ fontSize: 14, color: T.muted, lineHeight: 1.5, marginBottom: 16 }}>
               {selectedTheme.description}
             </div>
             <button
@@ -235,8 +235,8 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
               border: src === id ? `5px solid ${T.brand}` : `2px solid ${T.border}`,
             }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{label}</div>
-              <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{desc}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>{label}</div>
+              <div style={{ fontSize: 13, color: T.muted, marginTop: 3 }}>{desc}</div>
             </div>
           </div>
         ))}
@@ -263,10 +263,10 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
             }}
           >
             <div style={{ fontSize: 22, marginBottom: 6 }}>{csvFile ? '✅' : '📄'}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: csvFile ? '#34d399' : T.text }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: csvFile ? '#34d399' : T.text }}>
               {csvFile ? csvFile.name : 'Arraste o CSV aqui ou clique para selecionar'}
             </div>
-            <div style={{ fontSize: 10, color: T.muted, marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: T.muted, marginTop: 5 }}>
               Export do Meta Ads Manager — colunas: Campaign name, Amount spent, Reach, Impressions, Leads
             </div>
           </div>

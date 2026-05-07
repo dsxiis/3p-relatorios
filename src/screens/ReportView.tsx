@@ -214,10 +214,10 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
             ←
           </button>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>
               {client.name} — {periodLabel}
             </div>
-            <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>
+            <div style={{ fontSize: 13, color: T.muted, marginTop: 2 }}>
               Clique em ✏ nos blocos de texto para editar
             </div>
           </div>
