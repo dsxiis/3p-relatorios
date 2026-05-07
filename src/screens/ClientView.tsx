@@ -1,18 +1,23 @@
 import { useEffect, useState } from 'react'
-import type { Client, Report, Screen } from '../lib/types'
-import { apiReports } from '../lib/api'
+import type { Client, MetaAdAccount, Report, Screen } from '../lib/types'
+import { apiReports, apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
+import { MetaAccountPicker } from '../components/MetaAccountPicker'
 
 interface ClientViewProps {
   client: Client
   onNavigate: (screen: Screen, client?: Client) => void
   onSelectReport: (report: Report) => void
   showToast: (msg: string) => void
+  onClientUpdated?: (updated: Client) => void
 }
 
-export function ClientView({ client, onNavigate, onSelectReport, showToast }: ClientViewProps) {
+export function ClientView({ client, onNavigate, onSelectReport, showToast, onClientUpdated }: ClientViewProps) {
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
+  const [metaAccount, setMetaAccount] = useState<string | null>(client.meta_account_id)
+  const [linkingAccount, setLinkingAccount] = useState(false)
+  const [savingAccount, setSavingAccount] = useState(false)
 
   useEffect(() => {
     apiReports.list(client.id)
@@ -78,6 +83,73 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast }: Cl
         >
           + Novo relatório
         </button>
+      </div>
+
+      {/* Meta Account section */}
+      <div style={{
+        background: T.surface,
+        border: `0.5px solid ${T.border}`,
+        borderRadius: 12,
+        padding: '16px 20px',
+        marginBottom: 32,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: linkingAccount ? 14 : 0 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 4 }}>
+              Conta Meta Ads
+            </div>
+            {metaAccount ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: 'monospace' }}>
+                  act_{metaAccount}
+                </span>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: T.muted }}>Nenhuma conta vinculada</div>
+            )}
+          </div>
+          {!linkingAccount && (
+            <button
+              onClick={() => setLinkingAccount(true)}
+              style={{
+                background: metaAccount ? 'none' : T.brand,
+                color: metaAccount ? T.muted : '#fff',
+                border: metaAccount ? `1px solid ${T.border}` : 'none',
+                borderRadius: 7, padding: '6px 13px',
+                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              {metaAccount ? 'Trocar' : 'Vincular conta →'}
+            </button>
+          )}
+        </div>
+
+        {linkingAccount && (
+          <MetaAccountPicker
+            selectedId={metaAccount}
+            onSelect={async (acc: MetaAdAccount) => {
+              const cleanId = acc.id.replace('act_', '')
+              setSavingAccount(true)
+              try {
+                const updated = await apiClients.updateAccount(client.id, cleanId)
+                setMetaAccount(cleanId)
+                onClientUpdated?.(updated)
+                showToast(`✓ Conta ${acc.name} vinculada`)
+              } catch {
+                showToast('Erro ao salvar conta')
+              } finally {
+                setSavingAccount(false)
+                setLinkingAccount(false)
+              }
+            }}
+            onSkip={() => setLinkingAccount(false)}
+            skipLabel="Cancelar"
+          />
+        )}
+        {savingAccount && (
+          <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>Salvando...</div>
+        )}
       </div>
 
       {/* Reports list */}

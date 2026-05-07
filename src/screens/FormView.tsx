@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react'
-import type { Client, Screen, DataSource } from '../lib/types'
-import { apiReports } from '../lib/api'
+import type { Client, Screen, DataSource, MetaAdAccount } from '../lib/types'
+import { apiReports, apiClients } from '../lib/api'
 import { parseCsvFile } from '../lib/csvParser'
 import { T } from '../styles/tokens'
 import { ALL_THEMES } from '../lib/themes'
 import type { SlideTheme } from '../lib/themes'
 import { ThemePreviewMini } from '../components/slides/ThemePreviewMini'
+import { MetaAccountPicker } from '../components/MetaAccountPicker'
 
-const MONTH_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
 const MONTH_FULL_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 
 function fmt(d: Date) {
@@ -47,22 +47,24 @@ const PERIOD_PRESETS = [
   { label: 'Personalizado',     start: '',                end: '' },
 ] as const
 
-type PeriodPreset = typeof PERIOD_PRESETS[number]
 
 interface FormViewProps {
   client: Client
   onNavigate: (screen: Screen, client?: Client) => void
   onGenerate: (reportId: string) => void
   showToast?: (msg: string) => void
+  onClientUpdated?: (updated: Client) => void
 }
 
-export function FormView({ client, onNavigate, onGenerate, showToast }: FormViewProps) {
+export function FormView({ client, onNavigate, onGenerate, showToast, onClientUpdated }: FormViewProps) {
   const [step, setStep] = useState<'template' | 'form'>('template')
   const [selectedThemeId, setSelectedThemeId] = useState('dark-premium')
   const [presetIdx, setPresetIdx] = useState(3) // "Este mês" default
   const [customStart, setCustomStart] = useState(fmt(startOfMonth(-1)))
   const [customEnd, setCustomEnd] = useState(fmt(endOfMonth(-1)))
   const [src, setSrc] = useState<DataSource>('meta')
+  const [linkingAccount, setLinkingAccount] = useState(false)
+  const [localMetaAccount, setLocalMetaAccount] = useState<string | null>(client.meta_account_id)
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [selectedUnits, setSelectedUnits] = useState<string[]>(
@@ -135,7 +137,9 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
     }
   }
 
-  const canGenerate = (src !== 'csv' || csvFile !== null) &&
+  const canGenerate =
+    (src !== 'csv' || csvFile !== null) &&
+    (src !== 'meta' || !!localMetaAccount) &&
     (!isCustom || (customStart !== '' && customEnd !== '' && customStart <= customEnd))
   const btnLabel = loading
     ? 'Iniciando...'
@@ -305,6 +309,85 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
           </div>
         ))}
       </FormField>
+
+      {/* Meta account status */}
+      {src === 'meta' && (
+        <div style={{ marginBottom: 18 }}>
+          {localMetaAccount && !linkingAccount ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: '#22c55e12', border: '1px solid #22c55e44',
+              borderRadius: 9, padding: '10px 14px',
+            }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#22c55e', marginBottom: 2 }}>
+                  Conta Meta vinculada
+                </div>
+                <div style={{ fontSize: 13, color: T.text, fontFamily: 'monospace' }}>
+                  act_{localMetaAccount}
+                </div>
+              </div>
+              <button
+                onClick={() => setLinkingAccount(true)}
+                style={{ background: 'none', border: 'none', fontSize: 12, color: T.muted, cursor: 'pointer' }}
+              >
+                Trocar
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              background: linkingAccount ? T.surface : '#f59e0b12',
+              border: `1px solid ${linkingAccount ? T.border : '#f59e0b55'}`,
+              borderRadius: 9, padding: '12px 14px',
+            }}>
+              {!linkingAccount ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginBottom: 2 }}>
+                      Nenhuma conta Meta vinculada
+                    </div>
+                    <div style={{ fontSize: 12, color: T.muted }}>
+                      Vincule uma conta para puxar dados automaticamente.
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setLinkingAccount(true)}
+                    style={{
+                      background: T.brand, color: '#fff', border: 'none',
+                      borderRadius: 7, padding: '6px 13px',
+                      fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    Vincular →
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>
+                    Selecionar conta Meta Ads
+                  </div>
+                  <MetaAccountPicker
+                    selectedId={localMetaAccount}
+                    onSelect={async (acc) => {
+                      const cleanId = acc.id.replace('act_', '')
+                      setLocalMetaAccount(cleanId)
+                      setLinkingAccount(false)
+                      try {
+                        const updated = await apiClients.updateAccount(client.id, cleanId)
+                        onClientUpdated?.(updated)
+                      } catch {
+                        showToast?.('Erro ao salvar conta')
+                      }
+                    }}
+                    onSkip={() => setLinkingAccount(false)}
+                    skipLabel="Cancelar"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {src === 'csv' && (
         <FormField label="Arquivo CSV">

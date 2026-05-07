@@ -66,6 +66,7 @@ export default function App() {
             onNavigate={navigate}
             onSelectReport={setReport}
             showToast={showToast}
+            onClientUpdated={updated => setClient(updated)}
           />
         )}
 
@@ -75,6 +76,7 @@ export default function App() {
             onNavigate={navigate}
             onGenerate={startGeneration}
             showToast={showToast}
+            onClientUpdated={updated => setClient(updated)}
           />
         )}
 

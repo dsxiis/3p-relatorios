@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Client } from '../lib/types'
+import type { Client, MetaAdAccount } from '../lib/types'
 import { apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
+import { MetaAccountPicker } from './MetaAccountPicker'
 
 interface NewClientModalProps {
   onClose: () => void
@@ -13,11 +14,12 @@ const COLORS = [
 ]
 
 export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [name, setName] = useState('')
   const [type, setType] = useState<'lead_gen' | 'franchise'>('lead_gen')
   const [color, setColor] = useState(COLORS[0])
   const [units, setUnits] = useState<string[]>([''])
+  const [selectedAccount, setSelectedAccount] = useState<MetaAdAccount | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
@@ -36,14 +38,14 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
   const handleStep1 = () => {
     if (!name.trim()) { setError('Nome é obrigatório'); return }
     setError(null)
-    if (type === 'franchise') { setStep(2) } else { handleSubmit() }
+    if (type === 'franchise') { setStep(2) } else { setStep(3) }
   }
 
-  const handleSubmit = async (unitsOverride?: string[]) => {
+  const handleSubmit = async () => {
     setLoading(true)
     setError(null)
     try {
-      const unitList = (unitsOverride ?? units)
+      const unitList = units
         .map(u => u.trim())
         .filter(Boolean)
         .map(u => ({ name: u }))
@@ -52,6 +54,7 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
         name: name.trim(),
         type,
         color,
+        meta_account_id: selectedAccount ? selectedAccount.id.replace('act_', '') : undefined,
         units: type === 'franchise' ? unitList : undefined,
       } as any)
       onCreate(client)
@@ -92,13 +95,13 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
             <h2 style={{ fontSize: 17, fontWeight: 800, color: T.text, letterSpacing: '-0.3px' }}>
-              {step === 1 ? 'Novo cliente' : 'Unidades da franquia'}
+              {step === 1 ? 'Novo cliente' : step === 2 ? 'Unidades da franquia' : 'Conta Meta Ads'}
             </h2>
-            {step === 2 && (
-              <p style={{ fontSize: 12, color: T.muted, marginTop: 3 }}>
-                {name} · {validUnits} unidade{validUnits !== 1 ? 's' : ''} adicionada{validUnits !== 1 ? 's' : ''}
-              </p>
-            )}
+            <p style={{ fontSize: 12, color: T.muted, marginTop: 3 }}>
+              {step === 1 ? `Passo 1 de ${type === 'franchise' ? 3 : 2}`
+                : step === 2 ? `${name} · ${validUnits} unidade${validUnits !== 1 ? 's' : ''}`
+                : `${name} · passo ${type === 'franchise' ? 3 : 2} de ${type === 'franchise' ? 3 : 2}`}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -200,7 +203,7 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
                 transition: 'opacity 0.15s',
               }}
             >
-              {loading ? 'Criando...' : type === 'franchise' ? 'Próximo — adicionar unidades →' : 'Criar cliente →'}
+              {loading ? 'Criando...' : type === 'franchise' ? 'Próximo — unidades →' : 'Próximo — conta Meta →'}
             </button>
           </div>
         )}
@@ -266,21 +269,65 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
                 ← Voltar
               </button>
               <button
-                onClick={() => handleSubmit()}
-                disabled={loading || validUnits === 0}
+                onClick={() => setStep(3)}
+                disabled={validUnits === 0}
                 style={{
                   flex: 2,
-                  background: loading || validUnits === 0
-                    ? T.surface2
-                    : `linear-gradient(135deg,#5B18A8,${T.brand})`,
-                  color: loading || validUnits === 0 ? T.muted : '#fff',
+                  background: validUnits === 0 ? T.surface2 : `linear-gradient(135deg,#5B18A8,${T.brand})`,
+                  color: validUnits === 0 ? T.muted : '#fff',
                   border: 'none', borderRadius: 9,
                   padding: '11px', fontSize: 14, fontWeight: 700,
-                  cursor: loading || validUnits === 0 ? 'not-allowed' : 'pointer',
+                  cursor: validUnits === 0 ? 'not-allowed' : 'pointer',
                   transition: 'opacity 0.15s',
                 }}
               >
-                {loading ? 'Criando...' : `Criar com ${validUnits} unidade${validUnits !== 1 ? 's' : ''} →`}
+                Próximo →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 — Meta Account */}
+        {step === 3 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ fontSize: 13, color: T.muted, margin: 0, lineHeight: 1.5 }}>
+              Selecione a conta de anúncios do Meta Ads para puxar os dados automaticamente.
+            </p>
+
+            <MetaAccountPicker
+              selectedId={selectedAccount?.id.replace('act_', '') ?? null}
+              onSelect={acc => setSelectedAccount(acc)}
+              onSkip={handleSubmit}
+              skipLabel="Pular — configurar depois"
+            />
+
+            {error && (
+              <div style={{ color: T.danger, fontSize: 12 }}>{error}</div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <button
+                onClick={() => { setStep(type === 'franchise' ? 2 : 1); setError(null) }}
+                className="btn-ghost"
+                style={{ flex: 1, padding: '11px', fontSize: 13 }}
+                disabled={loading}
+              >
+                ← Voltar
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{
+                  flex: 2,
+                  background: loading ? T.surface2 : `linear-gradient(135deg,#5B18A8,${T.brand})`,
+                  color: loading ? T.muted : '#fff',
+                  border: 'none', borderRadius: 9,
+                  padding: '11px', fontSize: 14, fontWeight: 700,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'opacity 0.15s',
+                }}
+              >
+                {loading ? 'Criando...' : selectedAccount ? `Criar com ${selectedAccount.name} →` : 'Criar sem conta Meta →'}
               </button>
             </div>
           </div>

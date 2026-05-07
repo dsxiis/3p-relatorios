@@ -27,6 +27,8 @@ export const apiClients = {
     request<Client>('/api/clients', { method: 'POST', body: JSON.stringify(body) }),
   rename: (id: string, name: string) =>
     request<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+  updateAccount: (id: string, meta_account_id: string | null) =>
+    request<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify({ meta_account_id }) }),
   delete: (id: string) => request<{ ok: boolean }>(`/api/clients/${id}`, { method: 'DELETE' }),
 }
 
