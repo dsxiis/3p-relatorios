@@ -5,7 +5,7 @@ import { T } from '../styles/tokens'
 
 interface MetaAccountPickerProps {
   selectedId: string | null
-  onSelect: (account: MetaAdAccount | null) => void
+  onSelect: (account: MetaAdAccount) => void
   onSkip?: () => void
   skipLabel?: string
 }

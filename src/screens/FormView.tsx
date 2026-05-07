@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import type { Client, Screen, DataSource, MetaAdAccount } from '../lib/types'
+import type { Client, Screen, DataSource } from '../lib/types'
 import { apiReports, apiClients } from '../lib/api'
 import { parseCsvFile } from '../lib/csvParser'
 import { T } from '../styles/tokens'
