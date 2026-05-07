@@ -16,7 +16,7 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
   const muted   = dark ? t.darkSlideMuted  : t.slideHint
 
   return (
-    <div style={{ position: 'relative', ...style }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', ...style }}>
       {e.active ? (
         <div>
           <textarea
@@ -68,6 +68,7 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
             lineHeight: 1.75,
             whiteSpace: 'pre-wrap',
             minHeight: 70,
+            flex: 1,
             cursor: 'text',
             position: 'relative',
           }}

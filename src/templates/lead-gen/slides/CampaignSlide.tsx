@@ -41,7 +41,9 @@ export function CampaignSlide({
   return (
     <SlideShell>
       <SlideLogo clientName={clientName} position="top-right" />
-      <div style={{ marginBottom: 18 }}>
+
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
         <SectionLabel>Campanha</SectionLabel>
         <h2 style={{ margin: '6px 0 0', fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }}>
           <EditableField e={eName} style={{ fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }} placeholder="Nome da campanha" />
@@ -49,12 +51,42 @@ export function CampaignSlide({
         <div style={{ fontSize: 12, color: t.slideHint, marginTop: 4 }}>ID: {campaign.id}</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: showCreative ? '2fr 1fr' : '1fr', gap: 32, marginBottom: 24 }}>
-        <div>
+      {/* Main grid: metrics+annotations | creative */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: showCreative ? '2fr 1fr' : '1fr',
+        gap: 32,
+        alignItems: 'stretch',
+      }}>
+        {/* Left: metrics → annotations fills remaining height */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <MetricGrid metrics={metrics} columns={3} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <SectionLabel style={{ marginBottom: 10 }}>Anotações</SectionLabel>
+            <EditableText
+              e={eAnnotation}
+              placeholder="Claude vai gerar a análise desta campanha..."
+              style={{ flex: 1 }}
+            />
+          </div>
         </div>
+
+        {/* Right: creative */}
         {showCreative && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+              <button
+                onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save() }}
+                style={{
+                  background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
+                  cursor: 'pointer', padding: '2px 4px',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+                onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
+              >
+                × ocultar
+              </button>
+            </div>
             <CreativeSpot
               label="Melhor Criativo"
               metrics={{
@@ -71,14 +103,14 @@ export function CampaignSlide({
         )}
       </div>
 
-      {/* Toggle creative section */}
+      {/* Add creative back if hidden */}
       {!showCreative && (
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ marginTop: 16 }}>
           <button
             onClick={() => { eCreativeVisible.change('true'); eCreativeVisible.save() }}
             style={{
               background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
-              padding: '4px 10px', fontSize: 10, color: t.slideMuted, cursor: 'pointer',
+              padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
@@ -87,26 +119,6 @@ export function CampaignSlide({
           </button>
         </div>
       )}
-      {showCreative && (
-        <div style={{ marginBottom: 4, textAlign: 'right' }}>
-          <button
-            onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save() }}
-            style={{
-              background: 'none', border: 'none', fontSize: 10, color: t.slideHint,
-              cursor: 'pointer', padding: '2px 6px',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
-            onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
-          >
-            × ocultar criativo
-          </button>
-        </div>
-      )}
-
-      <div style={{ marginTop: 4 }}>
-        <SectionLabel>Anotações</SectionLabel>
-        <EditableText e={eAnnotation} placeholder="Claude vai gerar a análise desta campanha..." />
-      </div>
     </SlideShell>
   )
 }

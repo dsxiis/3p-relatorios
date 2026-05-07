@@ -35,34 +35,36 @@ interface UnitSlideProps {
   eVideoVisible: EditState
 }
 
-function ToggleSection({
-  label, visible, onShow, onHide, accent, border, muted,
-}: { label: string; visible: boolean; onShow: () => void; onHide: () => void; accent: string; border: string; muted: string }) {
-  if (!visible) {
-    return (
-      <button
-        onClick={onShow}
-        style={{
-          background: 'none', border: `1px dashed ${border}`, borderRadius: 6,
-          padding: '4px 10px', fontSize: 10, color: muted, cursor: 'pointer',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
-      >
-        + {label}
-      </button>
-    )
-  }
+function ShowBtn({ label, accent, border, muted, onShow }: {
+  label: string; accent: string; border: string; muted: string; onShow: () => void
+}) {
+  return (
+    <button
+      onClick={onShow}
+      style={{
+        background: 'none', border: `1px dashed ${border}`, borderRadius: 6,
+        padding: '4px 10px', fontSize: 12, color: muted, cursor: 'pointer',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
+    >
+      + {label}
+    </button>
+  )
+}
+
+function HideBtn({ label, muted, onHide }: { label: string; muted: string; onHide: () => void }) {
   return (
     <button
       onClick={onHide}
       style={{
-        background: 'none', border: 'none', fontSize: 9, color: muted, cursor: 'pointer', padding: '1px 4px',
+        background: 'none', border: 'none', fontSize: 11, color: muted,
+        cursor: 'pointer', padding: '2px 4px',
       }}
       onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
-      onMouseLeave={e => { e.currentTarget.style.color = muted }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = muted }}
     >
-      × ocultar
+      × {label}
     </button>
   )
 }
@@ -82,29 +84,42 @@ export function UnitSlide({
     <SlideShell>
       <SlideLogo clientName={clientName} position="top-right" />
 
-      <div style={{ marginBottom: 18 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
         <SectionLabel>Unidade</SectionLabel>
         <h2 style={{ margin: '6px 0 0', fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }}>
           <EditableField e={eCity} style={{ fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }} placeholder="Cidade" />
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: hasCreatives ? '2fr 1fr' : '1fr', gap: 32, marginBottom: 20 }}>
-        <div>
+      {/* Main grid: metrics+annotations | creatives */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: hasCreatives ? '2fr 1fr' : '1fr',
+        gap: 32,
+        alignItems: 'stretch',
+      }}>
+        {/* Left: metrics → annotations fills remaining height */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <MetricGrid metrics={metrics} columns={3} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <SectionLabel style={{ marginBottom: 10 }}>Anotações</SectionLabel>
+            <EditableText
+              e={eAnnotation}
+              placeholder="Claude vai gerar a análise desta unidade..."
+              style={{ flex: 1 }}
+            />
+          </div>
         </div>
 
+        {/* Right: creatives stacked */}
         {hasCreatives && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {showAd && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 9, color: t.slideHint }}> </span>
-                  <ToggleSection label="Melhor AD" visible={showAd}
-                    accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
-                    onShow={() => { eAdVisible.change('true'); eAdVisible.save() }}
-                    onHide={() => { eAdVisible.change('false'); eAdVisible.save() }}
-                  />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+                  <HideBtn label="ocultar AD" muted={t.slideMuted}
+                    onHide={() => { eAdVisible.change('false'); eAdVisible.save() }} />
                 </div>
                 <CreativeSpot
                   label="Melhor AD"
@@ -115,12 +130,9 @@ export function UnitSlide({
             )}
             {showVideo && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-                  <ToggleSection label="Melhor VID" visible={showVideo}
-                    accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
-                    onShow={() => { eVideoVisible.change('true'); eVideoVisible.save() }}
-                    onHide={() => { eVideoVisible.change('false'); eVideoVisible.save() }}
-                  />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+                  <HideBtn label="ocultar VID" muted={t.slideMuted}
+                    onHide={() => { eVideoVisible.change('false'); eVideoVisible.save() }} />
                 </div>
                 <CreativeSpot
                   label="Melhor VID"
@@ -135,28 +147,17 @@ export function UnitSlide({
 
       {/* Re-add hidden creatives */}
       {(!showAd || !showVideo) && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
           {!showAd && (
-            <ToggleSection label="Melhor AD" visible={false}
-              accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
-              onShow={() => { eAdVisible.change('true'); eAdVisible.save() }}
-              onHide={() => {}}
-            />
+            <ShowBtn label="Melhor AD" accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
+              onShow={() => { eAdVisible.change('true'); eAdVisible.save() }} />
           )}
           {!showVideo && (
-            <ToggleSection label="Melhor VID" visible={false}
-              accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
-              onShow={() => { eVideoVisible.change('true'); eVideoVisible.save() }}
-              onHide={() => {}}
-            />
+            <ShowBtn label="Melhor VID" accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
+              onShow={() => { eVideoVisible.change('true'); eVideoVisible.save() }} />
           )}
         </div>
       )}
-
-      <div>
-        <SectionLabel>Anotações</SectionLabel>
-        <EditableText e={eAnnotation} placeholder="Claude vai gerar a análise desta unidade..." />
-      </div>
     </SlideShell>
   )
 }
