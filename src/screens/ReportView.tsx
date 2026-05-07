@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { Client, Report, Screen, EditState, LeadGenData, FranchiseData } from '../lib/types'
 import { T } from '../styles/tokens'
 import { apiReports } from '../lib/api'
@@ -81,6 +81,51 @@ function mockToFranchise(clientName: string): FranchiseData {
 export function ReportView({ client, report, onNavigate, showToast }: ReportViewProps) {
   const [editing, setEditing] = useState<string | null>(null)
   const [_saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const slidesRef = useRef<HTMLDivElement>(null)
+
+  const exportPdf = async () => {
+    const container = slidesRef.current
+    if (!container || exporting) return
+    setExporting(true)
+    showToast('Gerando PDF…')
+    try {
+      const { default: html2canvas } = await import('html2canvas')
+      const { jsPDF } = await import('jspdf')
+      const slides = Array.from(container.children) as HTMLElement[]
+      if (slides.length === 0) return
+      let pdf: InstanceType<typeof jsPDF> | null = null
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i]
+        const w = slide.offsetWidth
+        const h = slide.offsetHeight
+        const canvas = await html2canvas(slide, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false,
+        })
+        const imgData = canvas.toDataURL('image/jpeg', 0.93)
+        if (i === 0) {
+          pdf = new jsPDF({ orientation: w >= h ? 'l' : 'p', unit: 'px', format: [w, h], hotfixes: ['px_scaling'] })
+        } else {
+          pdf!.addPage([w, h], w >= h ? 'l' : 'p')
+        }
+        pdf!.addImage(imgData, 'JPEG', 0, 0, w, h)
+      }
+      if (pdf) {
+        const filename = `${client.name} — ${periodLabel}`.replace(/[/\\?%*:|"<>]/g, '-') + '.pdf'
+        pdf.save(filename)
+        showToast('✓ PDF baixado!')
+      }
+    } catch (err) {
+      console.error(err)
+      showToast('Erro ao gerar PDF')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const reportKey = report?.id ?? `preview-${client.id}`
 
@@ -183,17 +228,18 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
           </button>
           <button
             className="btn-primary"
-            style={{ fontSize: 12 }}
-            onClick={() => showToast('PDF via Cloudflare Browser Rendering — disponível em breve')}
+            style={{ fontSize: 12, opacity: exporting ? 0.6 : 1 }}
+            disabled={exporting}
+            onClick={exportPdf}
           >
-            ↓ Exportar PDF
+            {exporting ? 'Gerando…' : '↓ Exportar PDF'}
           </button>
         </div>
       </div>
 
       {/* Slides */}
       <SlideThemeProvider themeId={themeId}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div ref={slidesRef} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {slides}
         </div>
       </SlideThemeProvider>
