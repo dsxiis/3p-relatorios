@@ -23,7 +23,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const apiClients = {
   list: () => request<Client[]>('/api/clients'),
   get: (id: string) => request<Client>(`/api/clients/${id}`),
-  create: (body: { name: string; type: string; description?: string; meta_account_id?: string }) =>
+  create: (body: { name: string; type: string; description?: string; meta_account_id?: string; color?: string; units?: { name: string }[] }) =>
     request<Client>('/api/clients', { method: 'POST', body: JSON.stringify(body) }),
   delete: (id: string) => request<{ ok: boolean }>(`/api/clients/${id}`, { method: 'DELETE' }),
 }

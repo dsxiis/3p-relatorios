@@ -52,7 +52,7 @@ export default function App() {
 
       <main key={screen} className="main-content">
         {screen === 'dashboard' && (
-          <Dashboard onSelectClient={setClient} onNavigate={navigate} />
+          <Dashboard onSelectClient={setClient} onNavigate={navigate} showToast={showToast} />
         )}
 
         {screen === 'client' && client && (

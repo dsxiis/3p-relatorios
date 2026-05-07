@@ -79,8 +79,20 @@ function mockToFranchise(clientName: string): FranchiseData {
 
 export function ReportView({ client, report, onNavigate, showToast }: ReportViewProps) {
   const [editing, setEditing] = useState<string | null>(null)
-  const [edits, setEdits] = useState<Record<string, string>>(report?.edits ?? {})
   const [_saving, setSaving] = useState(false)
+
+  const reportKey = report?.id ?? `preview-${client.id}`
+
+  // Load persisted edits: text from report.edits, images from localStorage
+  const [edits, setEdits] = useState<Record<string, string>>(() => {
+    const base = report?.edits ?? {}
+    // Merge image edits from localStorage
+    try {
+      const stored = localStorage.getItem(`img-edits-${reportKey}`)
+      if (stored) return { ...base, ...JSON.parse(stored) }
+    } catch { /* ignore */ }
+    return base
+  })
 
   const template = getTemplateForClientType(client.type)
 
@@ -107,9 +119,22 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
     save: async () => {
       setSaving(true)
       setEditing(null)
-      if (report) {
+      const value = edits[id] ?? defaultValue
+      const isImage = value.startsWith('data:') || value === ''
+
+      if (isImage) {
+        // Images stay in localStorage — too large for API
         try {
-          await apiReports.saveEdit(report.id, id, edits[id] ?? defaultValue)
+          const stored = localStorage.getItem(`img-edits-${reportKey}`)
+          const imgEdits = stored ? JSON.parse(stored) : {}
+          if (value) imgEdits[id] = value
+          else delete imgEdits[id]
+          localStorage.setItem(`img-edits-${reportKey}`, JSON.stringify(imgEdits))
+        } catch { /* ignore */ }
+        showToast('✓ Imagem salva')
+      } else if (report) {
+        try {
+          await apiReports.saveEdit(report.id, id, value)
           showToast('✓ Alteração salva')
         } catch {
           showToast('✓ Salvo localmente')
