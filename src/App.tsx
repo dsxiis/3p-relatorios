@@ -13,7 +13,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [client, setClient] = useState<Client | null>(null)
   const [report, setReport] = useState<Report | null>(null)
-  const [genStep, setGenStep] = useState(0)
+  const [reportId, setReportId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -26,20 +26,14 @@ export default function App() {
     if (cl !== undefined) setClient(cl)
   }
 
-  const startGeneration = () => {
+  const startGeneration = (id: string) => {
+    setReportId(id)
     setScreen('generating')
-    setGenStep(0)
-    ;([1, 2, 3, 4] as const).forEach((n, i) => {
-      setTimeout(() => {
-        setGenStep(n)
-        if (n === 4) {
-          setTimeout(() => {
-            setScreen('report')
-            setReport(null) // will use mock data
-          }, 600)
-        }
-      }, (i + 1) * 1000)
-    })
+  }
+
+  const handleReportReady = (r: Report) => {
+    setReport(r)
+    setScreen('report')
   }
 
   const showSidebar = ['dashboard', 'client', 'form'].includes(screen)
@@ -50,10 +44,7 @@ export default function App() {
         <Sidebar
           screen={screen}
           onNavigate={sc => {
-            if (sc === 'dashboard') {
-              setClient(null)
-              setReport(null)
-            }
+            if (sc === 'dashboard') { setClient(null); setReport(null) }
             setScreen(sc)
           }}
         />
@@ -61,10 +52,7 @@ export default function App() {
 
       <main key={screen} className="main-content">
         {screen === 'dashboard' && (
-          <Dashboard
-            onSelectClient={setClient}
-            onNavigate={navigate}
-          />
+          <Dashboard onSelectClient={setClient} onNavigate={navigate} />
         )}
 
         {screen === 'client' && client && (
@@ -85,8 +73,13 @@ export default function App() {
           />
         )}
 
-        {screen === 'generating' && (
-          <GeneratingView step={genStep} client={client} />
+        {screen === 'generating' && reportId && (
+          <GeneratingView
+            reportId={reportId}
+            client={client}
+            onReady={handleReportReady}
+            onError={(msg) => { showToast(msg); setScreen('form') }}
+          />
         )}
 
         {screen === 'report' && client && (
