@@ -1,6 +1,7 @@
 import type { EditState } from '../../lib/types'
 import { EditableField } from './EditableField'
 import { EditableImage } from './EditableImage'
+import { useTheme } from '../../lib/themeContext'
 
 interface CreativeMetrics {
   clicks?: number
@@ -31,8 +32,9 @@ export function CreativeSpot({
   eMessages,
   eCpl,
 }: CreativeSpotProps) {
-  const muted = dark ? '#666' : '#9ca3af'
-  const text = dark ? '#ccc' : '#374151'
+  const t = useTheme()
+  const muted = dark ? t.darkSlideMuted : t.slideMuted
+  const text  = dark ? t.darkSlideText  : t.slideText
 
   return (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -41,8 +43,8 @@ export function CreativeSpot({
       ) : (
         <div style={{
           width: 72, height: 90, flexShrink: 0,
-          background: dark ? '#1a1a2e' : '#f3f4f6',
-          border: `1px dashed ${dark ? '#2e2e50' : '#e5e7eb'}`,
+          background: dark ? t.darkSlideCardBg : t.slideCardBg,
+          border: `1px dashed ${dark ? t.darkSlideBorder : t.slideBorder}`,
           borderRadius: 6,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 18, color: muted,
@@ -85,9 +87,9 @@ export function CreativeSpot({
               </div>
             )}
             {metrics.cpl !== undefined && (
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#8833ff' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: t.accent }}>
                 {eCpl
-                  ? <EditableField e={eCpl} style={{ fontSize: 11, fontWeight: 700, color: '#8833ff' }} />
+                  ? <EditableField e={eCpl} style={{ fontSize: 11, fontWeight: 700, color: t.accent }} />
                   : `CPL R$ ${metrics.cpl.toFixed(2)}`
                 }
               </div>

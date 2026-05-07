@@ -3,6 +3,9 @@ import type { Client, Screen, DataSource } from '../lib/types'
 import { apiReports } from '../lib/api'
 import { parseCsvFile } from '../lib/csvParser'
 import { T } from '../styles/tokens'
+import { ALL_THEMES } from '../lib/themes'
+import type { SlideTheme } from '../lib/themes'
+import { ThemePreviewMini } from '../components/slides/ThemePreviewMini'
 
 const PERIOD_OPTIONS = [
   { label: 'Maio / 2026',     start: '2026-05-01', end: '2026-05-31' },
@@ -19,6 +22,8 @@ interface FormViewProps {
 }
 
 export function FormView({ client, onNavigate, onGenerate, showToast }: FormViewProps) {
+  const [step, setStep] = useState<'template' | 'form'>('template')
+  const [selectedThemeId, setSelectedThemeId] = useState('dark-premium')
   const [periodIdx, setPeriodIdx] = useState(0)
   const [src, setSrc] = useState<DataSource>('meta')
   const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -67,11 +72,17 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
         period_end: period.end,
         period_label: period.label,
         source: src,
+        template_id: selectedThemeId,
         csv_data: csvData,
         unit_ids: isFranchise ? selectedUnits : undefined,
       })
 
       const reportId = (result as { id: string }).id
+      // Store template choice per-report in localStorage (worker may not save it yet)
+      try {
+        localStorage.setItem(`report-template-${reportId}`, selectedThemeId)
+      } catch { /* ignore */ }
+
       onGenerate(reportId)
     } catch (err) {
       showToast?.('Erro ao iniciar geração. Verifique a conexão.')
@@ -88,22 +99,106 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
     ? `Gerar ${selectedUnits.length} relatórios →`
     : 'Gerar relatório →'
 
+  // ── Step 1: Template picker ─────────────────────────
+  if (step === 'template') {
+    const selectedTheme = ALL_THEMES.find(t => t.id === selectedThemeId)!
+    return (
+      <div style={{ padding: '38px 42px', maxWidth: 760, animation: 'fadein 0.25s ease' }}>
+        <button
+          onClick={() => onNavigate('client', client)}
+          className="btn-ghost"
+          style={{ marginBottom: 24, fontSize: 13 }}
+        >
+          ← Voltar
+        </button>
+
+        <h1 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.3px', color: T.text, marginBottom: 4 }}>
+          Escolha o template
+        </h1>
+        <p style={{ color: T.muted, fontSize: 13, marginBottom: 24 }}>
+          {client.name} · Clique no template para ver o visual
+        </p>
+
+        {/* Cards grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: 14,
+          marginBottom: 28,
+        }}>
+          {ALL_THEMES.map(theme => (
+            <TemplatePickerCard
+              key={theme.id}
+              theme={theme}
+              selected={selectedThemeId === theme.id}
+              onSelect={() => setSelectedThemeId(theme.id)}
+            />
+          ))}
+        </div>
+
+        {/* Selected preview + continue */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 20,
+          padding: '16px 20px',
+          background: T.surface,
+          border: `1.5px solid ${T.brandBorder}`,
+          borderRadius: 10,
+        }}>
+          <ThemePreviewMini theme={selectedTheme} width={160} style={{ borderRadius: 6, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+              {selectedTheme.emoji} {selectedTheme.name}
+            </div>
+            <div style={{ fontSize: 12, color: T.muted, lineHeight: 1.5, marginBottom: 14 }}>
+              {selectedTheme.description}
+            </div>
+            <button
+              onClick={() => setStep('form')}
+              style={{
+                background: `linear-gradient(135deg, #5B18A8, #8833ff)`,
+                color: '#fff',
+                border: 'none', borderRadius: 8, padding: '10px 22px',
+                fontSize: 13, fontWeight: 700,
+                cursor: 'pointer',
+                letterSpacing: '-0.2px',
+              }}
+            >
+              Continuar →
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Step 2: Form ────────────────────────────────────
+  const selectedTheme = ALL_THEMES.find(t => t.id === selectedThemeId)!
+
   return (
     <div style={{ padding: '38px 42px', maxWidth: 560, animation: 'fadein 0.25s ease' }}>
       <button
-        onClick={() => onNavigate('client', client)}
+        onClick={() => setStep('template')}
         className="btn-ghost"
         style={{ marginBottom: 24, fontSize: 13 }}
       >
         ← Voltar
       </button>
 
-      <h1 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.3px', color: T.text, marginBottom: 6 }}>
-        Novo relatório
-      </h1>
-      <p style={{ color: T.muted, fontSize: 13, marginBottom: 32 }}>
-        {client.name} · {client.type === 'franchise' ? 'Franquia' : 'Lead Gen — B2B'}
-      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 8,
+          background: selectedTheme.previewGradient,
+          flexShrink: 0,
+        }} />
+        <div>
+          <h1 style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', color: T.text, margin: 0 }}>
+            Novo relatório
+          </h1>
+          <p style={{ color: T.muted, fontSize: 12, marginBottom: 0, marginTop: 2 }}>
+            {client.name} · {selectedTheme.emoji} {selectedTheme.name}
+          </p>
+        </div>
+      </div>
 
       <FormField label="Período">
         <select
@@ -242,6 +337,58 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
       >
         {btnLabel}
       </button>
+    </div>
+  )
+}
+
+// ── Template picker card ──────────────────────────────
+
+function TemplatePickerCard({
+  theme, selected, onSelect,
+}: { theme: SlideTheme; selected: boolean; onSelect: () => void }) {
+  return (
+    <div
+      onClick={onSelect}
+      style={{
+        border: selected ? `2px solid #8833ff` : `1.5px solid ${T.border}`,
+        borderRadius: 10,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        background: T.surface,
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        boxShadow: selected ? '0 0 0 3px rgba(136,51,255,0.15)' : 'none',
+        position: 'relative',
+      }}
+      onMouseEnter={e => { if (!selected) e.currentTarget.style.borderColor = '#c084fc' }}
+      onMouseLeave={e => { if (!selected) e.currentTarget.style.borderColor = T.border }}
+    >
+      {/* Mini preview */}
+      <div style={{ padding: 6, background: '#e5e7eb' }}>
+        <ThemePreviewMini theme={theme} width={208} style={{ borderRadius: 5 }} />
+      </div>
+
+      {/* Name + check */}
+      <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>
+          {theme.emoji} {theme.name}
+        </span>
+        {selected ? (
+          <div style={{
+            width: 16, height: 16, borderRadius: '50%',
+            background: '#8833ff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 9, color: '#fff', fontWeight: 700, flexShrink: 0,
+          }}>
+            ✓
+          </div>
+        ) : (
+          <div style={{
+            width: 16, height: 16, borderRadius: '50%',
+            border: `1.5px solid ${T.border}`,
+            flexShrink: 0,
+          }} />
+        )}
+      </div>
     </div>
   )
 }

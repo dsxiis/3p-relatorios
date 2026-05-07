@@ -1,6 +1,7 @@
 import { SlideShell } from '../../../components/slides/SlideShell'
 import { SlideLogo } from '../../../components/slides/SlideLogo'
 import { EditableField } from '../../../components/slides/EditableField'
+import { useTheme } from '../../../lib/themeContext'
 import type { EditState } from '../../../lib/types'
 
 interface CoverProps {
@@ -10,28 +11,27 @@ interface CoverProps {
 }
 
 export function Cover({ eClient, ePeriod, unitCount }: CoverProps) {
+  const t = useTheme()
   return (
     <SlideShell dark style={{
-      background: 'linear-gradient(135deg, #0f0f1a 0%, #001830 60%, #003060 100%)',
+      background: t.coverBg,
       minHeight: 200,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
     }}>
       <SlideLogo clientName={eClient.value} dark position="top-right" />
-      <div style={{ fontSize: 11, color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 12 }}>
+      <div style={{ fontSize: 11, color: t.coverAccentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 12 }}>
         Relatório de Performance — Franquia
       </div>
-      <h1 style={{ fontSize: 32, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-1px', lineHeight: 1.1 }}>
-        <EditableField e={eClient} dark style={{ fontSize: 32, fontWeight: 900, color: '#fff', letterSpacing: '-1px' }} placeholder="Nome do cliente" />
+      <h1 style={{ fontSize: 32, fontWeight: 900, color: t.coverTitleColor, margin: 0, letterSpacing: '-1px', lineHeight: 1.1 }}>
+        <EditableField e={eClient} dark style={{ fontSize: 32, fontWeight: 900, color: t.coverTitleColor, letterSpacing: '-1px' }} placeholder="Nome do cliente" />
       </h1>
       <div style={{ display: 'flex', gap: 16, marginTop: 12, alignItems: 'center' }}>
-        <div style={{ fontSize: 14, color: '#888', fontWeight: 500 }}>
-          <EditableField e={ePeriod} dark style={{ fontSize: 14, color: '#aaa', fontWeight: 500 }} placeholder="Período" />
-        </div>
+        <EditableField e={ePeriod} dark style={{ fontSize: 14, color: t.coverSubColor, fontWeight: 500 }} placeholder="Período" />
         <div style={{
           padding: '3px 10px', borderRadius: 20,
-          background: 'rgba(52,211,153,0.15)', color: '#34d399',
+          background: t.coverBadgeBg, color: t.coverBadgeText,
           fontSize: 11, fontWeight: 700,
         }}>
           {unitCount} unidades
@@ -39,7 +39,7 @@ export function Cover({ eClient, ePeriod, unitCount }: CoverProps) {
       </div>
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0, height: 3,
-        background: 'linear-gradient(90deg, #34d399, #0891b2, transparent)',
+        background: t.coverBarGradient,
       }} />
     </SlideShell>
   )

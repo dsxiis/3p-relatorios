@@ -3,7 +3,9 @@ import { MetricGrid } from '../../../components/slides/MetricGrid'
 import { EditableText } from '../../../components/slides/EditableText'
 import { CreativeSpot } from '../../../components/slides/CreativeSpot'
 import { SlideLogo } from '../../../components/slides/SlideLogo'
+import { SectionLabel } from '../../../components/slides/SectionLabel'
 import { EditableField } from '../../../components/slides/EditableField'
+import { useTheme } from '../../../lib/themeContext'
 import type { FranchiseUnitData, EditState } from '../../../lib/types'
 
 interface MetricItem {
@@ -34,18 +36,18 @@ interface UnitSlideProps {
 }
 
 function ToggleSection({
-  label, visible, onShow, onHide,
-}: { label: string; visible: boolean; onShow: () => void; onHide: () => void }) {
+  label, visible, onShow, onHide, accent, border, muted,
+}: { label: string; visible: boolean; onShow: () => void; onHide: () => void; accent: string; border: string; muted: string }) {
   if (!visible) {
     return (
       <button
         onClick={onShow}
         style={{
-          background: 'none', border: '1px dashed #d1d5db', borderRadius: 6,
-          padding: '4px 10px', fontSize: 10, color: '#9ca3af', cursor: 'pointer',
+          background: 'none', border: `1px dashed ${border}`, borderRadius: 6,
+          padding: '4px 10px', fontSize: 10, color: muted, cursor: 'pointer',
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#8833ff'; e.currentTarget.style.color = '#8833ff' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#9ca3af' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
       >
         + {label}
       </button>
@@ -55,10 +57,10 @@ function ToggleSection({
     <button
       onClick={onHide}
       style={{
-        background: 'none', border: 'none', fontSize: 9, color: '#9ca3af', cursor: 'pointer', padding: '1px 4px',
+        background: 'none', border: 'none', fontSize: 9, color: muted, cursor: 'pointer', padding: '1px 4px',
       }}
       onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
-      onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af' }}
+      onMouseLeave={e => { e.currentTarget.style.color = muted }}
     >
       × ocultar
     </button>
@@ -71,6 +73,7 @@ export function UnitSlide({
   eAdImage, eAdClicks, eAdMessages, eAdCpl, eAdVisible,
   eVideoImage, eVideoClicks, eVideoMessages, eVideoCpl, eVideoVisible,
 }: UnitSlideProps) {
+  const t = useTheme()
   const showAd    = eAdVisible.value !== 'false'
   const showVideo = eVideoVisible.value !== 'false'
   const hasCreatives = showAd || showVideo
@@ -80,11 +83,9 @@ export function UnitSlide({
       <SlideLogo clientName={clientName} position="top-right" />
 
       <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 10, color: '#0891b2', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-          Unidade
-        </div>
-        <h2 style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.3px' }}>
-          <EditableField e={eCity} style={{ fontSize: 20, fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.3px' }} placeholder="Cidade" />
+        <SectionLabel>Unidade</SectionLabel>
+        <h2 style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 800, color: t.slideText, letterSpacing: '-0.3px' }}>
+          <EditableField e={eCity} style={{ fontSize: 20, fontWeight: 800, color: t.slideText, letterSpacing: '-0.3px' }} placeholder="Cidade" />
         </h2>
       </div>
 
@@ -98,8 +99,9 @@ export function UnitSlide({
             {showAd && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 9, color: '#9ca3af' }}> </span>
+                  <span style={{ fontSize: 9, color: t.slideHint }}> </span>
                   <ToggleSection label="Melhor AD" visible={showAd}
+                    accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
                     onShow={() => { eAdVisible.change('true'); eAdVisible.save() }}
                     onHide={() => { eAdVisible.change('false'); eAdVisible.save() }}
                   />
@@ -115,6 +117,7 @@ export function UnitSlide({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
                   <ToggleSection label="Melhor VID" visible={showVideo}
+                    accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
                     onShow={() => { eVideoVisible.change('true'); eVideoVisible.save() }}
                     onHide={() => { eVideoVisible.change('false'); eVideoVisible.save() }}
                   />
@@ -135,12 +138,14 @@ export function UnitSlide({
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
           {!showAd && (
             <ToggleSection label="Melhor AD" visible={false}
+              accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
               onShow={() => { eAdVisible.change('true'); eAdVisible.save() }}
               onHide={() => {}}
             />
           )}
           {!showVideo && (
             <ToggleSection label="Melhor VID" visible={false}
+              accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
               onShow={() => { eVideoVisible.change('true'); eVideoVisible.save() }}
               onHide={() => {}}
             />
@@ -149,9 +154,7 @@ export function UnitSlide({
       )}
 
       <div>
-        <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
-          Anotações
-        </div>
+        <SectionLabel>Anotações</SectionLabel>
         <EditableText e={eAnnotation} placeholder="Claude vai gerar a análise desta unidade..." />
       </div>
     </SlideShell>

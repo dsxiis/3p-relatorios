@@ -4,6 +4,7 @@ import { T } from '../styles/tokens'
 import { apiReports } from '../lib/api'
 import { getTemplateForClientType } from '../templates/index'
 import { MOCK_RIZON, MOCK_FOLKS } from '../lib/mockData'
+import { SlideThemeProvider } from '../lib/themeContext'
 
 interface ReportViewProps {
   client: Client
@@ -96,6 +97,14 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
 
   const template = getTemplateForClientType(client.type)
 
+  // Resolve theme: from report (if worker saves it), then from per-report localStorage key, then default.
+  // NOTE: intentionally NOT using a per-client fallback — that was causing themes to leak across reports.
+  const themeId = report?.template_id
+    ?? (() => {
+      try { return localStorage.getItem(`report-template-${reportKey}`) } catch { return null }
+    })()
+    ?? 'dark-premium'
+
   // Resolve data: real raw_data from report, or mock fallback for dev/preview
   const data = report?.raw_data ?? (
     client.type === 'lead_gen'
@@ -183,9 +192,11 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
       </div>
 
       {/* Slides */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {slides}
-      </div>
+      <SlideThemeProvider themeId={themeId}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {slides}
+        </div>
+      </SlideThemeProvider>
     </div>
   )
 }

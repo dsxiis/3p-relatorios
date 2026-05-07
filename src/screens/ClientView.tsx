@@ -21,6 +21,22 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast }: Cl
       .finally(() => setLoading(false))
   }, [client.id])
 
+  const handleDelete = async (reportId: string) => {
+    try {
+      await apiReports.delete(reportId)
+      // Remove from state
+      setReports(prev => prev.filter(r => r.id !== reportId))
+      // Clean up localStorage entries
+      try {
+        localStorage.removeItem(`report-template-${reportId}`)
+        localStorage.removeItem(`img-edits-${reportId}`)
+      } catch { /* ignore */ }
+      showToast('Relatório excluído')
+    } catch {
+      showToast('Erro ao excluir relatório')
+    }
+  }
+
   const typeLabel = client.type === 'franchise' ? 'Franquia' : 'Lead Gen — B2B'
 
   return (
@@ -94,6 +110,7 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast }: Cl
               report={r}
               onView={() => { onSelectReport(r); onNavigate('report', client) }}
               onDownload={() => showToast('PDF disponível após geração completa')}
+              onDelete={() => handleDelete(r.id)}
             />
           ))}
         </div>
@@ -106,9 +123,13 @@ interface ReportRowProps {
   report: Report
   onView: () => void
   onDownload: () => void
+  onDelete: () => void
 }
 
-function ReportRow({ report, onView, onDownload }: ReportRowProps) {
+function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
   const statusColor = report.status === 'ready'
     ? '#22C55E'
     : report.status === 'error'
@@ -125,10 +146,16 @@ function ReportRow({ report, onView, onDownload }: ReportRowProps) {
     day: '2-digit', month: 'short', year: 'numeric'
   })
 
+  const handleConfirmDelete = async () => {
+    setDeleting(true)
+    await onDelete()
+    // (component unmounts after deletion, no need to reset state)
+  }
+
   return (
     <div style={{
       background: T.surface,
-      border: `0.5px solid ${T.border}`,
+      border: `0.5px solid ${confirmDelete ? '#ff6b6b44' : T.border}`,
       borderRadius: 10,
       padding: '13px 17px',
       display: 'flex',
@@ -136,9 +163,10 @@ function ReportRow({ report, onView, onDownload }: ReportRowProps) {
       alignItems: 'center',
       transition: 'border-color 0.15s',
     }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = T.borderHover)}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
+      onMouseEnter={e => { if (!confirmDelete) e.currentTarget.style.borderColor = T.borderHover }}
+      onMouseLeave={e => { if (!confirmDelete) e.currentTarget.style.borderColor = T.border }}
     >
+      {/* Left: status + info */}
       <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
         <div style={{
           width: 7, height: 7, borderRadius: '50%',
@@ -151,15 +179,78 @@ function ReportRow({ report, onView, onDownload }: ReportRowProps) {
           </div>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 7 }}>
-        {report.status === 'ready' && (
-          <button className="btn-ghost" style={{ fontSize: 12 }} onClick={onView}>
-            Ver preview
-          </button>
+
+      {/* Right: actions */}
+      <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+        {confirmDelete ? (
+          /* Inline confirmation */
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ fontSize: 11, color: '#ff6b6b', fontWeight: 600 }}>
+              Excluir permanentemente?
+            </span>
+            <button
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              style={{
+                background: '#ff6b6b',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 5,
+                padding: '4px 11px',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: deleting ? 'not-allowed' : 'pointer',
+                opacity: deleting ? 0.7 : 1,
+              }}
+            >
+              {deleting ? 'Excluindo...' : 'Sim, excluir'}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              style={{
+                background: 'none',
+                border: `1px solid ${T.border}`,
+                borderRadius: 5,
+                padding: '4px 10px',
+                fontSize: 11,
+                color: T.muted,
+                cursor: 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <>
+            {report.status === 'ready' && (
+              <button className="btn-ghost" style={{ fontSize: 12 }} onClick={onView}>
+                Ver preview
+              </button>
+            )}
+            <button className="btn-ghost" style={{ fontSize: 12 }} onClick={onDownload}>
+              ↓ PDF
+            </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              title="Excluir relatório"
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '4px 6px',
+                borderRadius: 5,
+                cursor: 'pointer',
+                color: T.hint,
+                fontSize: 14,
+                lineHeight: 1,
+                transition: 'color 0.1s, background 0.1s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b'; e.currentTarget.style.background = 'rgba(255,107,107,0.08)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = T.hint; e.currentTarget.style.background = 'none' }}
+            >
+              🗑
+            </button>
+          </>
         )}
-        <button className="btn-ghost" style={{ fontSize: 12 }} onClick={onDownload}>
-          ↓ PDF
-        </button>
       </div>
     </div>
   )

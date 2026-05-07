@@ -20,17 +20,23 @@ export function Sidebar({ screen, onNavigate }: SidebarProps) {
 
       <nav className="sidebar-nav">
         {([
-          ['dashboard', 'Dashboard'],
-          ['templates', 'Templates'],
-          ['historico', 'Histórico'],
-        ] as const).map(([id, label]) => (
+          ['dashboard',  '📊', 'Dashboard'],
+          ['templates',  '🎨', 'Templates'],
+          ['historico',  '🕐', 'Histórico'],
+        ] as const).map(([id, icon, label]) => (
           <button
             key={id}
             className={`sidebar-nav-btn${active === id ? ' active' : ''}`}
             onClick={() => {
               if (id === 'dashboard') onNavigate('dashboard')
+              else if (id === 'templates') onNavigate('templates')
+              else if (id === 'historico') {
+                // TODO: implement historico screen
+              }
             }}
+            style={{ opacity: id === 'historico' ? 0.5 : 1 }}
           >
+            <span style={{ marginRight: 8, fontSize: 13 }}>{icon}</span>
             {label}
           </button>
         ))}

@@ -1,7 +1,9 @@
 import { SlideShell } from '../../../components/slides/SlideShell'
 import { MetricGrid } from '../../../components/slides/MetricGrid'
 import { SlideLogo } from '../../../components/slides/SlideLogo'
+import { SectionLabel } from '../../../components/slides/SectionLabel'
 import { EditableField } from '../../../components/slides/EditableField'
+import { useTheme } from '../../../lib/themeContext'
 import type { LeadGenData } from '../schema'
 import type { EditState } from '../../../lib/types'
 
@@ -21,12 +23,14 @@ interface MetricsOverviewProps {
 }
 
 export function MetricsOverview({ data, ePeriod, metrics }: MetricsOverviewProps) {
+  const t = useTheme()
   return (
     <SlideShell>
       <SlideLogo clientName={data.client} position="top-right" />
-      <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 16 }}>
-        Visão Geral —{' '}
-        <EditableField e={ePeriod} style={{ fontSize: 11, color: '#6b7280', fontWeight: 700, letterSpacing: '1px' }} placeholder="Período" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+        <SectionLabel style={{ marginBottom: 0 }}>Visão Geral</SectionLabel>
+        <div style={{ fontSize: 11, color: t.slideMuted, fontWeight: 500 }}>—</div>
+        <EditableField e={ePeriod} style={{ fontSize: 11, color: t.slideMuted, fontWeight: 600 }} placeholder="Período" />
       </div>
       <MetricGrid metrics={metrics} columns={3} />
     </SlideShell>

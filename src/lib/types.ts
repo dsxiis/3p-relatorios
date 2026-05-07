@@ -93,6 +93,7 @@ export interface Report {
   period_start: string
   period_end: string
   status: ReportStatus
+  template_id?: string | null
   pdf_key: string | null
   error_message: string | null
   raw_data: TemplateReportData | null
@@ -135,12 +136,13 @@ export interface GenerateReportPayload {
   period_end: string
   period_label: string
   source: DataSource
+  template_id?: string
   csv_data?: string   // raw CSV rows as JSON string, only when source === 'csv'
   unit_ids?: string[]
 }
 
 /* ── APP STATE ────────────────────────────────────────── */
-export type Screen = 'dashboard' | 'client' | 'form' | 'generating' | 'report'
+export type Screen = 'dashboard' | 'client' | 'form' | 'generating' | 'report' | 'templates'
 
 export interface EditState {
   id: string

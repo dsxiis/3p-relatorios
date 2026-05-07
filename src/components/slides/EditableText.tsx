@@ -1,4 +1,5 @@
 import type { EditState } from '../../lib/types'
+import { useTheme } from '../../lib/themeContext'
 
 interface EditableTextProps {
   e: EditState
@@ -8,10 +9,11 @@ interface EditableTextProps {
 }
 
 export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dark = false, style }: EditableTextProps) {
-  const bg = dark ? '#1a1a2e' : '#f9fafb'
-  const border = dark ? '#2e2e50' : '#e5e7eb'
-  const text = dark ? '#e8e8e8' : '#374151'
-  const muted = dark ? '#666' : '#9ca3af'
+  const t = useTheme()
+  const bg     = dark ? t.darkSlideCardBg : t.slideCardBg
+  const border  = dark ? t.darkSlideBorder : t.slideBorder
+  const text    = dark ? t.darkSlideText   : t.slideText
+  const muted   = dark ? t.darkSlideMuted  : t.slideHint
 
   return (
     <div style={{ position: 'relative', ...style }}>
@@ -25,7 +27,7 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
               width: '100%',
               minHeight: 100,
               background: bg,
-              border: `1.5px solid #8833ff`,
+              border: `1.5px solid ${t.accent}`,
               borderRadius: 6,
               padding: '10px 12px',
               fontSize: 12,
@@ -41,7 +43,7 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
             onClick={e.save}
             style={{
               marginTop: 6,
-              background: '#8833ff',
+              background: t.accent,
               color: '#fff',
               border: 'none',
               borderRadius: 5,

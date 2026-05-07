@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { EditState } from '../../lib/types'
 import { EditableField } from './EditableField'
+import { useTheme } from '../../lib/themeContext'
 
 interface MetricItem {
   label: string
@@ -18,9 +19,8 @@ interface MetricGridProps {
 }
 
 export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridProps) {
-  const textColor = dark ? '#e8e8e8' : '#1a1a2e'
-  const mutedColor = dark ? '#888' : '#6b7280'
-  const borderColor = dark ? '#2e2e50' : '#e5e7eb'
+  const t = useTheme()
+  const mutedColor = dark ? t.darkSlideMuted : t.slideMuted
 
   const visible = metrics.filter(m => m.eVisible?.value !== 'false')
   const hidden  = metrics.filter(m => m.eVisible?.value === 'false')
@@ -30,17 +30,10 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
       <div style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: 12,
+        gap: t.metricCardVariant === 'outline' ? 8 : 10,
       }}>
         {visible.map((m, i) => (
-          <MetricCard
-            key={i}
-            m={m}
-            dark={dark}
-            textColor={textColor}
-            mutedColor={mutedColor}
-            borderColor={borderColor}
-          />
+          <MetricCard key={i} m={m} dark={dark} />
         ))}
       </div>
 
@@ -54,7 +47,7 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
               title={`Mostrar "${m.label}"`}
               style={{
                 background: 'none',
-                border: `1px dashed ${dark ? '#2e2e50' : '#d1d5db'}`,
+                border: `1px dashed ${dark ? t.darkSlideBorder : '#d1d5db'}`,
                 borderRadius: 6,
                 padding: '3px 9px',
                 fontSize: 10,
@@ -65,8 +58,8 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
                 gap: 4,
                 transition: 'border-color 0.12s, color 0.12s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#8833ff'; e.currentTarget.style.color = '#8833ff' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#2e2e50' : '#d1d5db'; e.currentTarget.style.color = mutedColor }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? t.darkSlideBorder : '#d1d5db'; e.currentTarget.style.color = mutedColor }}
             >
               <span>+</span>
               <span>{m.label}</span>
@@ -78,70 +71,181 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
   )
 }
 
+// ── MetricCard ────────────────────────────────────────────────
+
 interface MetricCardProps {
   m: MetricItem
   dark: boolean
-  textColor: string
-  mutedColor: string
-  borderColor: string
 }
 
-function MetricCard({ m, dark, textColor, mutedColor, borderColor }: MetricCardProps) {
+function MetricCard({ m, dark }: MetricCardProps) {
   const [hovered, setHovered] = useState(false)
+  const t = useTheme()
+  const accentColor = m.accentColor ?? t.accent
+  const textColor   = dark ? t.darkSlideText   : t.slideText
+  const mutedColor  = dark ? t.darkSlideMuted  : t.slideMuted
 
+  const variant = t.metricCardVariant
+
+  // ── filled ──────────────────────────────────────────
+  if (variant === 'filled') {
+    const bg     = dark ? t.darkSlideCardBg : t.slideCardBg
+    const border = dark ? t.darkSlideBorder : (m.accentColor ? m.accentColor + '33' : t.slideBorder)
+
+    return (
+      <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
+        style={{ background: bg, border: `1px solid ${border}`, borderRadius: t.cardRadius, padding: '12px 14px' }}
+      >
+        <Label>{m.label}</Label>
+        {m.sub && <Sub>{m.sub}</Sub>}
+        <Value e={m.e} dark={dark} value={m.value} color={accentColor} size={t.metricValueSize} />
+        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+          bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
+      </CardShell>
+    )
+  }
+
+  // ── left-border ─────────────────────────────────────
+  if (variant === 'left-border') {
+    const bg = dark ? t.darkSlideCardBg : '#ffffff'
+    return (
+      <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
+        style={{
+          background: bg,
+          border: `1px solid ${dark ? t.darkSlideBorder : t.slideBorder}`,
+          borderLeft: `3px solid ${accentColor}`,
+          borderRadius: t.cardRadius,
+          padding: '10px 12px',
+        }}
+      >
+        <Label color={mutedColor}>{m.label}</Label>
+        {m.sub && <Sub>{m.sub}</Sub>}
+        <Value e={m.e} dark={dark} value={m.value} color={accentColor} size={t.metricValueSize} />
+        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+          bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
+      </CardShell>
+    )
+  }
+
+  // ── top-accent ──────────────────────────────────────
+  if (variant === 'top-accent') {
+    const bg = dark ? t.darkSlideCardBg : '#ffffff'
+    return (
+      <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
+        style={{
+          background: bg,
+          border: `1px solid ${dark ? t.darkSlideBorder : t.slideBorder}`,
+          borderTop: `2px solid ${accentColor}`,
+          borderRadius: t.cardRadius,
+          padding: '10px 12px 12px',
+        }}
+      >
+        <Label color={mutedColor}>{m.label}</Label>
+        {m.sub && <Sub>{m.sub}</Sub>}
+        <Value e={m.e} dark={dark} value={m.value} color={textColor} size={t.metricValueSize}
+          accentBelow={accentColor} />
+        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+          bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
+      </CardShell>
+    )
+  }
+
+  // ── outline ─────────────────────────────────────────
+  // (Mono Pro: transparent bg, thick black border, generous text)
+  return (
+    <CardShell hovered={hovered} onEnter={() => setHovered(true)} onLeave={() => setHovered(false)}
+      style={{
+        background: 'transparent',
+        border: `1.5px solid ${dark ? t.darkSlideText : t.slideText}`,
+        borderRadius: t.cardRadius,
+        padding: '10px 12px',
+      }}
+    >
+      <Label color={mutedColor}>{m.label}</Label>
+      {m.sub && <Sub>{m.sub}</Sub>}
+      <Value e={m.e} dark={dark} value={m.value} color={textColor} size={t.metricValueSize} />
+      <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+        bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
+    </CardShell>
+  )
+}
+
+// ── Shared sub-components ─────────────────────────────────────
+
+function CardShell({ children, style, onEnter, onLeave, hovered: _ }:
+  { children: React.ReactNode; style: React.CSSProperties; onEnter: () => void; onLeave: () => void; hovered?: boolean }) {
   return (
     <div
-      style={{
-        background: dark ? '#1a1a2e' : '#f9fafb',
-        border: `1px solid ${m.accentColor ? m.accentColor + '44' : borderColor}`,
-        borderRadius: 8,
-        padding: '12px 14px',
-        position: 'relative',
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      style={{ position: 'relative', ...style }}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
     >
-      <div style={{ fontSize: 10, color: mutedColor, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
-        {m.label}
-      </div>
-      {m.sub && (
-        <div style={{ fontSize: 9, color: mutedColor, marginBottom: 2 }}>{m.sub}</div>
-      )}
-      {m.e ? (
+      {children}
+    </div>
+  )
+}
+
+function Label({ children, color }: { children: React.ReactNode; color?: string }) {
+  const t = useTheme()
+  return (
+    <div style={{
+      fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
+      letterSpacing: '0.6px', marginBottom: 3,
+      color: color ?? t.slideMuted,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+function Sub({ children }: { children: React.ReactNode }) {
+  const t = useTheme()
+  return <div style={{ fontSize: 9, color: t.slideMuted, marginBottom: 2 }}>{children}</div>
+}
+
+function Value({ e, dark, value, color, size, accentBelow }:
+  { e?: EditState; dark: boolean; value: string; color: string; size: number; accentBelow?: string }) {
+  return (
+    <div>
+      {e ? (
         <EditableField
-          e={m.e}
+          e={e}
           dark={dark}
-          style={{ fontSize: 20, fontWeight: 800, color: m.accentColor ?? textColor, letterSpacing: '-0.5px', display: 'block' }}
+          style={{ fontSize: size, fontWeight: 800, color, letterSpacing: '-0.5px', display: 'block' }}
         />
       ) : (
-        <div style={{ fontSize: 20, fontWeight: 800, color: m.accentColor ?? textColor, letterSpacing: '-0.5px' }}>
-          {m.value}
+        <div style={{ fontSize: size, fontWeight: 800, color, letterSpacing: '-0.5px' }}>
+          {value}
         </div>
       )}
-
-      {/* Hide button — appears on hover when eVisible is provided */}
-      {m.eVisible && hovered && (
-        <button
-          onClick={e => { e.stopPropagation(); m.eVisible!.change('false'); m.eVisible!.save() }}
-          title="Esconder esta métrica"
-          style={{
-            position: 'absolute', top: 5, right: 5,
-            background: dark ? '#2e2e50' : '#e5e7eb',
-            border: 'none',
-            borderRadius: 4,
-            width: 18, height: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, color: mutedColor,
-            cursor: 'pointer',
-            lineHeight: 1,
-            transition: 'background 0.1s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#ff6b6b'; e.currentTarget.style.color = '#fff' }}
-          onMouseLeave={e => { e.currentTarget.style.background = dark ? '#2e2e50' : '#e5e7eb'; e.currentTarget.style.color = mutedColor }}
-        >
-          ×
-        </button>
+      {accentBelow && (
+        <div style={{ marginTop: 6, height: 2, width: 24, background: accentBelow, borderRadius: 1 }} />
       )}
     </div>
+  )
+}
+
+function HideBtn({ show, onHide, bg, muted }:
+  { show: boolean; onHide: () => void; bg: string; muted: string }) {
+  if (!show) return null
+  return (
+    <button
+      onClick={e => { e.stopPropagation(); onHide() }}
+      title="Esconder esta métrica"
+      style={{
+        position: 'absolute', top: 4, right: 4,
+        background: bg, border: 'none',
+        borderRadius: 3,
+        width: 16, height: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 10, color: muted,
+        cursor: 'pointer', lineHeight: 1,
+        transition: 'background 0.1s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = '#ff6b6b'; e.currentTarget.style.color = '#fff' }}
+      onMouseLeave={e => { e.currentTarget.style.background = bg; e.currentTarget.style.color = muted }}
+    >
+      ×
+    </button>
   )
 }

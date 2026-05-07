@@ -1,3 +1,5 @@
+import { useTheme } from '../../lib/themeContext'
+
 interface SlideShellProps {
   children: React.ReactNode
   dark?: boolean
@@ -5,13 +7,14 @@ interface SlideShellProps {
 }
 
 export function SlideShell({ children, dark = false, style }: SlideShellProps) {
+  const t = useTheme()
   return (
     <div style={{
-      background: dark ? '#0f0f1a' : '#ffffff',
-      borderRadius: 12,
-      padding: '28px 32px',
+      background: dark ? t.darkSlideBg : t.slideBg,
+      borderRadius: t.cardRadius + 4,
+      padding: `28px ${t.slidePaddingX}px`,
       boxShadow: '0 2px 20px rgba(0,0,0,0.18)',
-      color: dark ? '#e8e8e8' : '#1a1a2e',
+      color: dark ? t.darkSlideText : t.slideText,
       position: 'relative',
       overflow: 'hidden',
       ...style,

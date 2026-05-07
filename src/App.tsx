@@ -7,6 +7,7 @@ import { ClientView } from './screens/ClientView'
 import { FormView } from './screens/FormView'
 import { GeneratingView } from './screens/GeneratingView'
 import { ReportView } from './screens/ReportView'
+import { TemplatesScreen } from './screens/TemplatesScreen'
 import './styles/global.css'
 
 export default function App() {
@@ -36,7 +37,7 @@ export default function App() {
     setScreen('report')
   }
 
-  const showSidebar = ['dashboard', 'client', 'form'].includes(screen)
+  const showSidebar = ['dashboard', 'client', 'form', 'templates'].includes(screen)
 
   return (
     <div className="app-layout">
@@ -53,6 +54,10 @@ export default function App() {
       <main key={screen} className="main-content">
         {screen === 'dashboard' && (
           <Dashboard onSelectClient={setClient} onNavigate={navigate} showToast={showToast} />
+        )}
+
+        {screen === 'templates' && (
+          <TemplatesScreen onBack={() => setScreen('dashboard')} />
         )}
 
         {screen === 'client' && client && (
