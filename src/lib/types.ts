@@ -22,6 +22,58 @@ export interface Client {
   units?: FranchiseUnit[]
 }
 
+/* ── TEMPLATE DATA ────────────────────────────────────── */
+export interface LeadGenCampaign {
+  id: string
+  name: string
+  spend: number
+  impressions: number
+  clicks: number
+  leads: number
+  cpl: number
+  cplPrevPeriod?: number
+  topCreative?: { clicks: number; leads: number; cpl: number }
+  annotation: string
+}
+
+export interface LeadGenData {
+  client: string
+  period: string
+  investment: number
+  totals: {
+    reach: number
+    impressions: number
+    clicks: number
+    leads: number
+    cpl: number
+  }
+  campaigns: LeadGenCampaign[]
+  todos3P: string[]
+  todosClient: string[]
+}
+
+export interface FranchiseUnitData {
+  id: string
+  city: string
+  impressions: number
+  reach: number
+  conversations: number
+  cpc: number
+  spend: number
+  bestAd?: { clicks: number; messages: number; cpl: number }
+  bestVideo?: { clicks: number; messages: number; cpl: number }
+  annotation: string
+}
+
+export interface FranchiseData {
+  client: string
+  period: string
+  units: FranchiseUnitData[]
+  franchiseHistory: string[]
+}
+
+export type TemplateReportData = LeadGenData | FranchiseData
+
 /* ── REPORT ───────────────────────────────────────────── */
 export type ReportStatus = 'generating' | 'ready' | 'error'
 
@@ -30,7 +82,7 @@ export interface ReportUnit {
   report_id: string
   unit_id: string
   unit_name: string
-  raw_data: MetaInsightsData | null
+  raw_data: TemplateReportData | null
   edits: Record<string, string>
 }
 
@@ -43,7 +95,7 @@ export interface Report {
   status: ReportStatus
   pdf_key: string | null
   error_message: string | null
-  raw_data: MetaInsightsData | null
+  raw_data: TemplateReportData | null
   edits: Record<string, string>
   created_at: string
   updated_at: string
@@ -67,17 +119,6 @@ export interface MetaCampaignInsight {
   cost_per_action_type?: MetaAction[]
 }
 
-export interface MetaInsightsData {
-  campaigns: MetaCampaignInsight[]
-  summary?: {
-    total_spend: number
-    total_impressions: number
-    total_clicks: number
-    total_leads: number
-    cpl: number
-  }
-}
-
 export interface MetaAdAccount {
   id: string
   name: string
@@ -86,11 +127,15 @@ export interface MetaAdAccount {
 }
 
 /* ── FORM ─────────────────────────────────────────────── */
+export type DataSource = 'meta' | 'csv' | 'manual'
+
 export interface GenerateReportPayload {
   client_id: string
   period_start: string
   period_end: string
   period_label: string
+  source: DataSource
+  csv_data?: string   // raw CSV rows as JSON string, only when source === 'csv'
   unit_ids?: string[]
 }
 
