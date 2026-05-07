@@ -7,12 +7,47 @@ import { ALL_THEMES } from '../lib/themes'
 import type { SlideTheme } from '../lib/themes'
 import { ThemePreviewMini } from '../components/slides/ThemePreviewMini'
 
-const PERIOD_OPTIONS = [
-  { label: 'Maio / 2026',     start: '2026-05-01', end: '2026-05-31' },
-  { label: 'Abril / 2026',    start: '2026-04-01', end: '2026-04-30' },
-  { label: 'Março / 2026',    start: '2026-03-01', end: '2026-03-31' },
-  { label: 'Fevereiro / 2026',start: '2026-02-01', end: '2026-02-28' },
-]
+const MONTH_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+const MONTH_FULL_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+
+function fmt(d: Date) {
+  return d.toISOString().split('T')[0]
+}
+function daysAgo(n: number) {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d
+}
+function today() { return new Date() }
+function startOfMonth(offset = 0) {
+  const d = new Date()
+  return new Date(d.getFullYear(), d.getMonth() + offset, 1)
+}
+function endOfMonth(offset = 0) {
+  const d = new Date()
+  return new Date(d.getFullYear(), d.getMonth() + offset + 1, 0)
+}
+function monthLabel(offset = 0) {
+  const d = new Date()
+  const m = new Date(d.getFullYear(), d.getMonth() + offset, 1)
+  return `${MONTH_FULL_PT[m.getMonth()]} / ${m.getFullYear()}`
+}
+
+const PERIOD_PRESETS = [
+  { label: 'Últimos 7 dias',    start: fmt(daysAgo(7)),   end: fmt(today()) },
+  { label: 'Últimos 14 dias',   start: fmt(daysAgo(14)),  end: fmt(today()) },
+  { label: 'Últimos 30 dias',   start: fmt(daysAgo(30)),  end: fmt(today()) },
+  { label: 'Este mês',          start: fmt(startOfMonth(0)), end: fmt(today()) },
+  { label: monthLabel(-1),      start: fmt(startOfMonth(-1)), end: fmt(endOfMonth(-1)) },
+  { label: monthLabel(-2),      start: fmt(startOfMonth(-2)), end: fmt(endOfMonth(-2)) },
+  { label: 'Últimos 60 dias',   start: fmt(daysAgo(60)),  end: fmt(today()) },
+  { label: 'Últimos 90 dias',   start: fmt(daysAgo(90)),  end: fmt(today()) },
+  { label: 'Últimos 6 meses',   start: fmt(daysAgo(182)), end: fmt(today()) },
+  { label: 'Últimos 12 meses',  start: fmt(daysAgo(365)), end: fmt(today()) },
+  { label: 'Personalizado',     start: '',                end: '' },
+] as const
+
+type PeriodPreset = typeof PERIOD_PRESETS[number]
 
 interface FormViewProps {
   client: Client
@@ -24,7 +59,9 @@ interface FormViewProps {
 export function FormView({ client, onNavigate, onGenerate, showToast }: FormViewProps) {
   const [step, setStep] = useState<'template' | 'form'>('template')
   const [selectedThemeId, setSelectedThemeId] = useState('dark-premium')
-  const [periodIdx, setPeriodIdx] = useState(0)
+  const [presetIdx, setPresetIdx] = useState(3) // "Este mês" default
+  const [customStart, setCustomStart] = useState(fmt(startOfMonth(-1)))
+  const [customEnd, setCustomEnd] = useState(fmt(endOfMonth(-1)))
   const [src, setSrc] = useState<DataSource>('meta')
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
@@ -55,10 +92,16 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
     setCsvFile(file)
   }
 
+  const preset = PERIOD_PRESETS[presetIdx]
+  const isCustom = preset.label === 'Personalizado'
+  const activePeriod = isCustom
+    ? { label: `${customStart} → ${customEnd}`, start: customStart, end: customEnd }
+    : preset
+
   const handleGenerate = async () => {
     setLoading(true)
     try {
-      const period = PERIOD_OPTIONS[periodIdx]
+      const period = activePeriod
 
       let csvData: string | undefined
       if (src === 'csv' && csvFile) {
@@ -92,7 +135,8 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
     }
   }
 
-  const canGenerate = src !== 'csv' || csvFile !== null
+  const canGenerate = (src !== 'csv' || csvFile !== null) &&
+    (!isCustom || (customStart !== '' && customEnd !== '' && customStart <= customEnd))
   const btnLabel = loading
     ? 'Iniciando...'
     : isFranchise
@@ -202,15 +246,35 @@ export function FormView({ client, onNavigate, onGenerate, showToast }: FormView
 
       <FormField label="Período">
         <select
-          value={periodIdx}
-          onChange={e => setPeriodIdx(Number(e.target.value))}
+          value={presetIdx}
+          onChange={e => setPresetIdx(Number(e.target.value))}
           className="input"
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: 'pointer', marginBottom: isCustom ? 8 : 0 }}
         >
-          {PERIOD_OPTIONS.map((p, i) => (
+          {PERIOD_PRESETS.map((p, i) => (
             <option key={p.label} value={i}>{p.label}</option>
           ))}
         </select>
+        {isCustom && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="date"
+              value={customStart}
+              onChange={e => setCustomStart(e.target.value)}
+              className="input"
+              style={{ flex: 1 }}
+            />
+            <span style={{ color: T.muted, fontSize: 13 }}>→</span>
+            <input
+              type="date"
+              value={customEnd}
+              max={fmt(today())}
+              onChange={e => setCustomEnd(e.target.value)}
+              className="input"
+              style={{ flex: 1 }}
+            />
+          </div>
+        )}
       </FormField>
 
       <FormField label="Origem dos dados">
