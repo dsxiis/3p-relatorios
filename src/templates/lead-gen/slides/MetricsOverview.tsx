@@ -20,13 +20,14 @@ interface MetricsOverviewProps {
   data: LeadGenData
   ePeriod: EditState
   metrics: MetricItem[]
+  clientLogo?: string | null
 }
 
-export function MetricsOverview({ data, ePeriod, metrics }: MetricsOverviewProps) {
+export function MetricsOverview({ data, ePeriod, metrics, clientLogo }: MetricsOverviewProps) {
   const t = useTheme()
   return (
     <SlideShell>
-      <SlideLogo clientName={data.client} position="top-right" />
+      <SlideLogo clientName={data.client} clientLogo={clientLogo} position="top-right" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
         <SectionLabel style={{ marginBottom: 0 }}>Visão Geral</SectionLabel>
         <div style={{ fontSize: 15, color: t.slideMuted, fontWeight: 500 }}>—</div>

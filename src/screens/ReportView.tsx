@@ -200,7 +200,7 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
     },
   })
 
-  const slides = template.renderSlides(data as any, mkEdit)
+  const slides = template.renderSlides(data as any, mkEdit, client.logo)
 
   return (
     <div style={{ padding: '22px 22px 60px', animation: 'fadein 0.2s ease' }}>

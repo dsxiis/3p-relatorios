@@ -8,9 +8,10 @@ interface CoverProps {
   eClient: EditState
   ePeriod: EditState
   unitCount: number
+  clientLogo?: string | null
 }
 
-export function Cover({ eClient, ePeriod, unitCount }: CoverProps) {
+export function Cover({ eClient, ePeriod, unitCount, clientLogo }: CoverProps) {
   const t = useTheme()
   return (
     <SlideShell dark style={{
@@ -20,7 +21,7 @@ export function Cover({ eClient, ePeriod, unitCount }: CoverProps) {
       flexDirection: 'column',
       justifyContent: 'center',
     }}>
-      <SlideLogo clientName={eClient.value} dark position="top-right" />
+      <SlideLogo clientName={eClient.value} clientLogo={clientLogo} dark position="top-right" />
       <div style={{ fontSize: 13, color: t.coverAccentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 16 }}>
         Relatório de Performance — Franquia
       </div>

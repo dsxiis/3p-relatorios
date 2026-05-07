@@ -25,7 +25,7 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
   metaMapper: (insights, clientName, period) => metaMapper(insights, clientName, period),
   csvMapper: (rows, clientName, period) => csvMapper(rows, clientName, period),
   claudePrompt,
-  renderSlides: (data: LeadGenData, mkEdit: (id: string, defaultValue: string) => EditState) => {
+  renderSlides: (data: LeadGenData, mkEdit: (id: string, defaultValue: string) => EditState, clientLogo?: string | null) => {
     const eClient = mkEdit('cover.client', data.client)
     const ePeriod = mkEdit('cover.period', data.period)
 
@@ -40,9 +40,9 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
     ]
 
     return [
-      <Cover key="cover" eClient={eClient} ePeriod={ePeriod} />,
+      <Cover key="cover" eClient={eClient} ePeriod={ePeriod} clientLogo={clientLogo} />,
 
-      <MetricsOverview key="metrics" data={data} ePeriod={ePeriod} metrics={overviewMetrics} />,
+      <MetricsOverview key="metrics" data={data} ePeriod={ePeriod} metrics={overviewMetrics} clientLogo={clientLogo} />,
 
       ...data.campaigns.map((campaign, i) => {
         const pfx = `campaign.${i}`
@@ -59,13 +59,17 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
             key={`campaign-${campaign.id}`}
             campaign={campaign}
             clientName={data.client}
+            clientLogo={clientLogo}
             metrics={campaignMetrics}
+            ePeriod={ePeriod}
             eAnnotation={mkEdit(`${pfx}.annotation`, campaign.annotation)}
             eName={mkEdit(`${pfx}.name`, campaign.name)}
             eCreativeImage={mkEdit(`${pfx}.creative.image`, '')}
             eCreativeClicks={mkEdit(`${pfx}.creative.clicks`, String(campaign.topCreative?.clicks ?? 0))}
             eCreativeLeads={mkEdit(`${pfx}.creative.leads`, String(campaign.topCreative?.leads ?? 0))}
             eCreativeCpl={mkEdit(`${pfx}.creative.cpl`, campaign.topCreative ? `CPL R$ ${campaign.topCreative.cpl.toFixed(2)}` : '—')}
+            eCreativeImpressions={mkEdit(`${pfx}.creative.impressions`, String(campaign.topCreative?.impressions ?? 0))}
+            eCreativeCtr={mkEdit(`${pfx}.creative.ctr`, campaign.topCreative?.ctr ? `${campaign.topCreative.ctr.toFixed(2)}%` : '—')}
             eCreativeVisible={mkEdit(`vis.${pfx}.creative`, 'true')}
           />
         )

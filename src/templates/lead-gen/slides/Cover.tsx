@@ -7,9 +7,10 @@ import type { EditState } from '../../../lib/types'
 interface CoverProps {
   eClient: EditState
   ePeriod: EditState
+  clientLogo?: string | null
 }
 
-export function Cover({ eClient, ePeriod }: CoverProps) {
+export function Cover({ eClient, ePeriod, clientLogo }: CoverProps) {
   const t = useTheme()
   return (
     <SlideShell dark style={{
@@ -19,7 +20,7 @@ export function Cover({ eClient, ePeriod }: CoverProps) {
       flexDirection: 'column',
       justifyContent: 'center',
     }}>
-      <SlideLogo clientName={eClient.value} dark position="top-right" />
+      <SlideLogo clientName={eClient.value} clientLogo={clientLogo} dark position="top-right" />
       <div style={{ fontSize: 13, color: t.coverAccentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 16 }}>
         Relatório de Performance
       </div>

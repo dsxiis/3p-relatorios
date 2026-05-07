@@ -4,6 +4,8 @@ export const topCreativeSchema = z.object({
   clicks: z.number(),
   leads: z.number(),
   cpl: z.number(),
+  impressions: z.number().optional(),
+  ctr: z.number().optional(),
 })
 
 export const leadGenCampaignSchema = z.object({

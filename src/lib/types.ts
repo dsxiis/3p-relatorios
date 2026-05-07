@@ -16,6 +16,7 @@ export interface Client {
   type: ClientType
   description: string | null
   meta_account_id: string | null
+  logo?: string | null
   created_at: string
   // hydrated
   reports?: Report[]
@@ -32,7 +33,7 @@ export interface LeadGenCampaign {
   leads: number
   cpl: number
   cplPrevPeriod?: number
-  topCreative?: { clicks: number; leads: number; cpl: number }
+  topCreative?: { clicks: number; leads: number; cpl: number; impressions?: number; ctr?: number }
   annotation: string
 }
 
@@ -60,8 +61,8 @@ export interface FranchiseUnitData {
   conversations: number
   cpc: number
   spend: number
-  bestAd?: { clicks: number; messages: number; cpl: number }
-  bestVideo?: { clicks: number; messages: number; cpl: number }
+  bestAd?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number }
+  bestVideo?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number }
   annotation: string
 }
 

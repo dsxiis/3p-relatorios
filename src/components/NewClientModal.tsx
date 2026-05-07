@@ -18,11 +18,13 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
   const [name, setName] = useState('')
   const [type, setType] = useState<'lead_gen' | 'franchise'>('lead_gen')
   const [color, setColor] = useState(COLORS[0])
+  const [logo, setLogo] = useState<string | null>(null)
   const [units, setUnits] = useState<string[]>([''])
   const [selectedAccount, setSelectedAccount] = useState<MetaAdAccount | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const logoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     nameRef.current?.focus()
@@ -41,6 +43,27 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
     if (type === 'franchise') { setStep(2) } else { setStep(3) }
   }
 
+  const handleLogoFile = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const dataUrl = e.target?.result as string
+      // Compress: draw on canvas at max 200px width
+      const img = new Image()
+      img.onload = () => {
+        const maxW = 200
+        const scale = Math.min(1, maxW / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        setLogo(canvas.toDataURL('image/png', 0.9))
+      }
+      img.src = dataUrl
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSubmit = async () => {
     setLoading(true)
     setError(null)
@@ -54,6 +77,7 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
         name: name.trim(),
         type,
         color,
+        logo: logo ?? undefined,
         meta_account_id: selectedAccount ? selectedAccount.id.replace('act_', '') : undefined,
         units: type === 'franchise' ? unitList : undefined,
       } as any)
@@ -184,6 +208,47 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
                     style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
                   />
                 </div>
+              </div>
+            </FieldBlock>
+
+            <FieldBlock label="Logo do cliente (opcional)">
+              <input
+                ref={logoRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={e => { if (e.target.files?.[0]) handleLogoFile(e.target.files[0]) }}
+              />
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                {logo ? (
+                  <>
+                    <img
+                      src={logo}
+                      alt="Logo"
+                      style={{ height: 36, maxWidth: 120, objectFit: 'contain', borderRadius: 6, border: `1px solid ${T.border}`, padding: 4, background: T.surface }}
+                    />
+                    <button
+                      onClick={() => setLogo(null)}
+                      style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, color: T.muted, cursor: 'pointer' }}
+                    >
+                      Remover
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => logoRef.current?.click()}
+                    style={{
+                      background: T.surface, border: `1px dashed ${T.border}`,
+                      borderRadius: 8, padding: '8px 14px',
+                      fontSize: 12, color: T.muted, cursor: 'pointer',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = T.brand)}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
+                  >
+                    + Selecionar imagem
+                  </button>
+                )}
               </div>
             </FieldBlock>
 

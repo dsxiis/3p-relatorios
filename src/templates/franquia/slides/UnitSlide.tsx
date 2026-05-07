@@ -20,18 +20,24 @@ interface MetricItem {
 interface UnitSlideProps {
   unit: FranchiseUnitData
   clientName: string
+  clientLogo?: string | null
   metrics: MetricItem[]
+  ePeriod: EditState
   eAnnotation: EditState
   eCity: EditState
   eAdImage: EditState
   eAdClicks: EditState
   eAdMessages: EditState
   eAdCpl: EditState
+  eAdImpressions: EditState
+  eAdCtr: EditState
   eAdVisible: EditState
   eVideoImage: EditState
   eVideoClicks: EditState
   eVideoMessages: EditState
   eVideoCpl: EditState
+  eVideoImpressions: EditState
+  eVideoCtr: EditState
   eVideoVisible: EditState
 }
 
@@ -70,10 +76,10 @@ function HideBtn({ label, muted, onHide }: { label: string; muted: string; onHid
 }
 
 export function UnitSlide({
-  unit, clientName, metrics,
-  eAnnotation, eCity,
-  eAdImage, eAdClicks, eAdMessages, eAdCpl, eAdVisible,
-  eVideoImage, eVideoClicks, eVideoMessages, eVideoCpl, eVideoVisible,
+  unit, clientName, clientLogo, metrics,
+  ePeriod, eAnnotation, eCity,
+  eAdImage, eAdClicks, eAdMessages, eAdCpl, eAdImpressions, eAdCtr, eAdVisible,
+  eVideoImage, eVideoClicks, eVideoMessages, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
 }: UnitSlideProps) {
   const t = useTheme()
   const showAd    = eAdVisible.value !== 'false'
@@ -82,7 +88,7 @@ export function UnitSlide({
 
   return (
     <SlideShell>
-      <SlideLogo clientName={clientName} position="top-right" />
+      <SlideLogo clientName={clientName} clientLogo={clientLogo} position="top-right" />
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
@@ -90,6 +96,9 @@ export function UnitSlide({
         <h2 style={{ margin: '6px 0 0', fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }}>
           <EditableField e={eCity} style={{ fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }} placeholder="Cidade" />
         </h2>
+        <div style={{ fontSize: 12, color: t.slideHint, marginTop: 4 }}>
+          <EditableField e={ePeriod} style={{ fontSize: 12, color: t.slideHint }} />
+        </div>
       </div>
 
       {/* Main grid: metrics+annotations | creatives */}
@@ -123,8 +132,15 @@ export function UnitSlide({
                 </div>
                 <CreativeSpot
                   label="Melhor AD"
-                  metrics={{ clicks: unit.bestAd?.clicks, messages: unit.bestAd?.messages, cpl: unit.bestAd?.cpl }}
+                  metrics={{
+                    clicks: unit.bestAd?.clicks,
+                    messages: unit.bestAd?.messages,
+                    cpl: unit.bestAd?.cpl,
+                    impressions: unit.bestAd?.impressions,
+                    ctr: unit.bestAd?.ctr,
+                  }}
                   eImage={eAdImage} eClicks={eAdClicks} eMessages={eAdMessages} eCpl={eAdCpl}
+                  eImpressions={eAdImpressions} eCtr={eAdCtr}
                 />
               </div>
             )}
@@ -136,8 +152,15 @@ export function UnitSlide({
                 </div>
                 <CreativeSpot
                   label="Melhor VID"
-                  metrics={{ clicks: unit.bestVideo?.clicks, messages: unit.bestVideo?.messages, cpl: unit.bestVideo?.cpl }}
+                  metrics={{
+                    clicks: unit.bestVideo?.clicks,
+                    messages: unit.bestVideo?.messages,
+                    cpl: unit.bestVideo?.cpl,
+                    impressions: unit.bestVideo?.impressions,
+                    ctr: unit.bestVideo?.ctr,
+                  }}
                   eImage={eVideoImage} eClicks={eVideoClicks} eMessages={eVideoMessages} eCpl={eVideoCpl}
+                  eImpressions={eVideoImpressions} eCtr={eVideoCtr}
                 />
               </div>
             )}

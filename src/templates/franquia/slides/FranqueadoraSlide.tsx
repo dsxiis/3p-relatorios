@@ -1,21 +1,23 @@
 import { SlideShell } from '../../../components/slides/SlideShell'
 import { SlideLogo } from '../../../components/slides/SlideLogo'
 import { EditableText } from '../../../components/slides/EditableText'
+import { EditableField } from '../../../components/slides/EditableField'
 import { useTheme } from '../../../lib/themeContext'
 import type { EditState } from '../../../lib/types'
 
 interface FranqueadoraSlideProps {
   clientName: string
-  period: string
+  clientLogo?: string | null
   franchiseHistory: string[]
+  ePeriod: EditState
   eHistory: EditState
 }
 
-export function FranqueadoraSlide({ clientName, period, franchiseHistory, eHistory }: FranqueadoraSlideProps) {
+export function FranqueadoraSlide({ clientName, clientLogo, franchiseHistory, ePeriod, eHistory }: FranqueadoraSlideProps) {
   const t = useTheme()
   return (
     <SlideShell dark style={{ background: t.darkSlideBg }}>
-      <SlideLogo clientName={clientName} dark position="top-right" />
+      <SlideLogo clientName={clientName} clientLogo={clientLogo} dark position="top-right" />
 
       {/* Section header — dark slide, always use accent green + rule style */}
       <div style={{
@@ -29,8 +31,10 @@ export function FranqueadoraSlide({ clientName, period, franchiseHistory, eHisto
         <span style={{
           fontSize: 12, fontWeight: 700, color: t.accentGreen,
           textTransform: 'uppercase', letterSpacing: '1.2px',
+          display: 'flex', gap: 4,
         }}>
-          Histórico de Otimizações — {period}
+          Histórico de Otimizações —{' '}
+          <EditableField e={ePeriod} style={{ fontSize: 12, fontWeight: 700, color: t.accentGreen, textTransform: 'uppercase', letterSpacing: '1.2px' }} />
         </span>
         <div style={{ flex: 1, height: 1, background: `${t.accentGreen}33` }} />
       </div>

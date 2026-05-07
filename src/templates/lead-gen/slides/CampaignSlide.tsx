@@ -20,27 +20,32 @@ interface MetricItem {
 interface CampaignSlideProps {
   campaign: LeadGenCampaign
   clientName: string
+  clientLogo?: string | null
   metrics: MetricItem[]
+  ePeriod: EditState
   eAnnotation: EditState
   eName: EditState
   eCreativeImage: EditState
   eCreativeClicks: EditState
   eCreativeLeads: EditState
   eCreativeCpl: EditState
+  eCreativeImpressions: EditState
+  eCreativeCtr: EditState
   eCreativeVisible: EditState  // 'true' | 'false'
 }
 
 export function CampaignSlide({
-  campaign, clientName, metrics,
-  eAnnotation, eName,
-  eCreativeImage, eCreativeClicks, eCreativeLeads, eCreativeCpl, eCreativeVisible,
+  campaign, clientName, clientLogo, metrics,
+  ePeriod, eAnnotation, eName,
+  eCreativeImage, eCreativeClicks, eCreativeLeads, eCreativeCpl,
+  eCreativeImpressions, eCreativeCtr, eCreativeVisible,
 }: CampaignSlideProps) {
   const t = useTheme()
   const showCreative = eCreativeVisible.value !== 'false'
 
   return (
     <SlideShell>
-      <SlideLogo clientName={clientName} position="top-right" />
+      <SlideLogo clientName={clientName} clientLogo={clientLogo} position="top-right" />
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
@@ -48,7 +53,11 @@ export function CampaignSlide({
         <h2 style={{ margin: '6px 0 0', fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }}>
           <EditableField e={eName} style={{ fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }} placeholder="Nome da campanha" />
         </h2>
-        <div style={{ fontSize: 12, color: t.slideHint, marginTop: 4 }}>ID: {campaign.id}</div>
+        <div style={{ fontSize: 12, color: t.slideHint, marginTop: 4 }}>
+          ID: {campaign.id}
+          {' · '}
+          <EditableField e={ePeriod} style={{ fontSize: 12, color: t.slideHint }} />
+        </div>
       </div>
 
       {/* Main grid: metrics+annotations | creative */}
@@ -93,11 +102,15 @@ export function CampaignSlide({
                 clicks: campaign.topCreative?.clicks,
                 leads: campaign.topCreative?.leads,
                 cpl: campaign.topCreative?.cpl,
+                impressions: campaign.topCreative?.impressions,
+                ctr: campaign.topCreative?.ctr,
               }}
               eImage={eCreativeImage}
               eClicks={eCreativeClicks}
               eLeads={eCreativeLeads}
               eCpl={eCreativeCpl}
+              eImpressions={eCreativeImpressions}
+              eCtr={eCreativeCtr}
             />
           </div>
         )}
