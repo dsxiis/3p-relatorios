@@ -25,36 +25,46 @@ interface CampaignSlideProps {
   ePeriod: EditState
   eAnnotation: EditState
   eName: EditState
-  // Vídeo (criativo de vídeo)
+  // Vídeo
   eVideoImage: EditState
   eVideoClicks: EditState
   eVideoLeads: EditState
   eVideoCpl: EditState
   eVideoImpressions: EditState
   eVideoCtr: EditState
-  // Imagem (criativo estático)
+  eVideoVisible: EditState
+  // Estático
   eImageImage: EditState
   eImageClicks: EditState
   eImageLeads: EditState
   eImageCpl: EditState
   eImageImpressions: EditState
   eImageCtr: EditState
-  eCreativeVisible: EditState  // 'true' | 'false' — esconde a coluna inteira
+  eImageVisible: EditState
 }
 
 export function CampaignSlide({
   campaign, clientName, clientLogo, metrics,
   ePeriod, eAnnotation, eName,
-  eVideoImage, eVideoClicks, eVideoLeads, eVideoCpl, eVideoImpressions, eVideoCtr,
-  eImageImage, eImageClicks, eImageLeads, eImageCpl, eImageImpressions, eImageCtr,
-  eCreativeVisible,
+  eVideoImage, eVideoClicks, eVideoLeads, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
+  eImageImage, eImageClicks, eImageLeads, eImageCpl, eImageImpressions, eImageCtr, eImageVisible,
 }: CampaignSlideProps) {
   const t = useTheme()
-  const showCreative = eCreativeVisible.value !== 'false'
 
-  // Fallback: se não tem topVideo/topImage, usa topCreative (legado)
-  const videoData = campaign.topVideo ?? campaign.topCreative
-  const imageData = campaign.topImage ?? campaign.topCreative
+  // Sem fallback — se topVideo não existe, fica undefined (não duplica com topImage)
+  const videoData = campaign.topVideo
+  const imageData = campaign.topImage
+
+  const showVideo = eVideoVisible.value !== 'false'
+  const showImage = eImageVisible.value !== 'false'
+
+  // Quantos cards visíveis pra montar grid responsivo
+  const visibleCount = (showVideo ? 1 : 0) + (showImage ? 1 : 0)
+  const gridCols = visibleCount === 0
+    ? '1fr'
+    : visibleCount === 1
+      ? '1.6fr 1fr'                  // métricas + 1 card
+      : '1.4fr 0.85fr 0.85fr'        // métricas + 2 cards (mais estreitos)
 
   return (
     <SlideShell>
@@ -73,14 +83,14 @@ export function CampaignSlide({
         </div>
       </div>
 
-      {/* Main grid: metrics+annotations | melhor vídeo | melhor estático */}
+      {/* Main grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: showCreative ? '1.4fr 1fr 1fr' : '1fr',
-        gap: 20,
+        gridTemplateColumns: gridCols,
+        gap: 18,
         alignItems: 'flex-start',
       }}>
-        {/* Esquerda: metrics → annotations */}
+        {/* Esquerda: metrics + annotations */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <MetricGrid metrics={metrics} columns={2} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -93,12 +103,12 @@ export function CampaignSlide({
           </div>
         </div>
 
-        {/* Centro: Melhor Vídeo */}
-        {showCreative && (
+        {/* Melhor Vídeo */}
+        {showVideo && (
           <div style={{ position: 'relative' }}>
             <button
               data-editor-only="true"
-              onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save('false') }}
+              onClick={() => { eVideoVisible.change('false'); eVideoVisible.save('false') }}
               style={{
                 position: 'absolute', top: -22, right: 0, zIndex: 5,
                 background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
@@ -106,18 +116,19 @@ export function CampaignSlide({
               }}
               onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
               onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
+              title="Ocultar Melhor Vídeo"
             >
               × ocultar
             </button>
             <CreativeSpot
               label="🎬 Melhor Vídeo"
-              metrics={{
-                clicks: videoData?.clicks,
-                leads: videoData?.leads,
-                cpl: videoData?.cpl,
-                impressions: videoData?.impressions,
-                ctr: videoData?.ctr,
-              }}
+              metrics={videoData ? {
+                clicks: videoData.clicks,
+                leads: videoData.leads,
+                cpl: videoData.cpl,
+                impressions: videoData.impressions,
+                ctr: videoData.ctr,
+              } : { clicks: 0, leads: 0, cpl: 0, impressions: 0, ctr: 0 }}
               previewLink={videoData?.preview_link}
               adName={videoData?.ad_name}
               eImage={eVideoImage}
@@ -127,21 +138,43 @@ export function CampaignSlide({
               eImpressions={eVideoImpressions}
               eCtr={eVideoCtr}
             />
+            {!videoData && (
+              <div data-editor-only="true" style={{
+                marginTop: 6, fontSize: 10, color: t.slideHint,
+                textAlign: 'center', fontStyle: 'italic',
+              }}>
+                Sem vídeo nesse período — você pode adicionar manualmente
+              </div>
+            )}
           </div>
         )}
 
-        {/* Direita: Melhor Estático */}
-        {showCreative && (
-          <div>
+        {/* Melhor Estático */}
+        {showImage && (
+          <div style={{ position: 'relative' }}>
+            <button
+              data-editor-only="true"
+              onClick={() => { eImageVisible.change('false'); eImageVisible.save('false') }}
+              style={{
+                position: 'absolute', top: -22, right: 0, zIndex: 5,
+                background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
+                cursor: 'pointer', padding: '2px 4px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+              onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
+              title="Ocultar Melhor Estático"
+            >
+              × ocultar
+            </button>
             <CreativeSpot
               label="🖼 Melhor Estático"
-              metrics={{
-                clicks: imageData?.clicks,
-                leads: imageData?.leads,
-                cpl: imageData?.cpl,
-                impressions: imageData?.impressions,
-                ctr: imageData?.ctr,
-              }}
+              metrics={imageData ? {
+                clicks: imageData.clicks,
+                leads: imageData.leads,
+                cpl: imageData.cpl,
+                impressions: imageData.impressions,
+                ctr: imageData.ctr,
+              } : { clicks: 0, leads: 0, cpl: 0, impressions: 0, ctr: 0 }}
               previewLink={imageData?.preview_link}
               adName={imageData?.ad_name}
               eImage={eImageImage}
@@ -151,24 +184,47 @@ export function CampaignSlide({
               eImpressions={eImageImpressions}
               eCtr={eImageCtr}
             />
+            {!imageData && (
+              <div data-editor-only="true" style={{
+                marginTop: 6, fontSize: 10, color: t.slideHint,
+                textAlign: 'center', fontStyle: 'italic',
+              }}>
+                Sem estático nesse período — você pode adicionar manualmente
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Add creatives back if hidden */}
-      {!showCreative && (
-        <div data-editor-only="true" style={{ marginTop: 16 }}>
-          <button
-            onClick={() => { eCreativeVisible.change('true'); eCreativeVisible.save('true') }}
-            style={{
-              background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
-              padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
-          >
-            + Melhores Criativos (Vídeo + Estático)
-          </button>
+      {/* Restaurar criativos ocultos */}
+      {(!showVideo || !showImage) && (
+        <div data-editor-only="true" style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+          {!showVideo && (
+            <button
+              onClick={() => { eVideoVisible.change('true'); eVideoVisible.save('true') }}
+              style={{
+                background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
+                padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
+            >
+              + 🎬 Melhor Vídeo
+            </button>
+          )}
+          {!showImage && (
+            <button
+              onClick={() => { eImageVisible.change('true'); eImageVisible.save('true') }}
+              style={{
+                background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
+                padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
+            >
+              + 🖼 Melhor Estático
+            </button>
+          )}
         </div>
       )}
     </SlideShell>
