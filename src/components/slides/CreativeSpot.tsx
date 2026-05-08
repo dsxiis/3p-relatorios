@@ -160,29 +160,45 @@ export function CreativeSpot({
         </div>
       )}
 
-      {/* === IMAGE — RETÂNGULO FIXO, imagem se adapta dentro === */}
+      {/* === IMAGE AREA — card fixo, dentro um frame 9:16 padronizado === */}
       <div style={{
         width: '100%',
-        height: 380,                           /* TAMANHO FIXO — não adapta com imagem */
+        height: 340,                           /* card fixo */
         background: dark ? t.darkSlideCardBg : '#f9fafb',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        overflow: 'hidden',
+        padding: 12,                           /* espaço pras bordas */
       }}>
-        {eImage ? (
-          <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
-        ) : (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 36,
-            color: muted,
-          }}>
-            🖼
-          </div>
-        )}
+        {/* Frame 9:16 padronizado — sempre vertical, independente da imagem */}
+        <div style={{
+          aspectRatio: '9 / 16',
+          height: '100%',
+          maxWidth: '100%',
+          background: '#0a0a0a',                 /* preto neutro atrás da imagem */
+          borderRadius: 6,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {eImage ? (
+            <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              fontSize: 24,
+              color: '#666',
+            }}>
+              <span>📷</span>
+              <span style={{ fontSize: 10, fontWeight: 600 }}>9:16</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
