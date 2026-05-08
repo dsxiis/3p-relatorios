@@ -60,6 +60,17 @@ export const apiMeta = {
   businesses: () => request<MetaAccountsGrouped>('/api/meta/businesses'),
   verifyAccount: (id: string) =>
     request<MetaAdAccount>(`/api/meta/account/${encodeURIComponent(id)}/verify`),
+  // Manual accounts (persisted)
+  listManualAccounts: () => request<MetaAdAccount[]>('/api/meta/manual-accounts'),
+  saveManualAccount: (id: string) =>
+    request<MetaAdAccount>('/api/meta/manual-accounts', {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    }),
+  removeManualAccount: (id: string) =>
+    request<{ ok: boolean }>(`/api/meta/manual-accounts/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
   insights: (accountId: string, start: string, end: string) =>
     request<MetaCampaignInsight[]>(
       `/api/meta/insights?account_id=${accountId}&start=${start}&end=${end}`

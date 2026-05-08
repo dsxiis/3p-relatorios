@@ -33,8 +33,9 @@ export function MetaAccountPicker({
       .then(d => {
         setData(d)
         setLoading(false)
-        // Auto-expand BMs that contain selectedId, or first 2 if none selected
+        // Auto-expand BMs that contain selectedId, or sensible defaults
         const open = new Set<string>()
+        const manual = d.manual_accounts ?? []
         if (selectedId) {
           for (const bm of d.businesses) {
             if (bm.accounts.some(a => normalizeId(a.id) === normalizeId(selectedId))) {
@@ -44,9 +45,13 @@ export function MetaAccountPicker({
           if (d.direct_accounts.some(a => normalizeId(a.id) === normalizeId(selectedId))) {
             open.add('__direct__')
           }
+          if (manual.some(a => normalizeId(a.id) === normalizeId(selectedId))) {
+            open.add('__manual__')
+          }
         }
         if (open.size === 0) {
-          // Default: expand first 2 BMs (or whatever is available)
+          // Default: expand manual + first 2 BMs
+          if (manual.length > 0) open.add('__manual__')
           d.businesses.slice(0, 2).forEach(bm => open.add(bm.id))
           if (d.direct_accounts.length > 0) open.add('__direct__')
         }
@@ -58,11 +63,24 @@ export function MetaAccountPicker({
       })
   }, [])
 
+  const refreshManual = async () => {
+    try {
+      const fresh = await apiMeta.businesses()
+      setData(fresh)
+    } catch { /* ignore */ }
+  }
+
   // Auto-expand all groups when there's a search query
   const visibleGroups = useMemo(() => {
     if (!data) return null
     const q = search.trim().toLowerCase()
-    if (!q) return { businesses: data.businesses, direct: data.direct_accounts }
+    const manual = data.manual_accounts ?? []
+
+    if (!q) return {
+      manual,
+      businesses: data.businesses,
+      direct: data.direct_accounts,
+    }
 
     const filterAccounts = (acc: MetaAdAccount[]) =>
       acc.filter(a =>
@@ -71,6 +89,7 @@ export function MetaAccountPicker({
       )
 
     return {
+      manual: filterAccounts(manual),
       businesses: data.businesses
         .map(bm => ({ ...bm, accounts: filterAccounts(bm.accounts) }))
         .filter(bm => bm.accounts.length > 0 || bm.name.toLowerCase().includes(q)),
@@ -80,8 +99,17 @@ export function MetaAccountPicker({
 
   const totalAccounts = useMemo(() => {
     if (!data) return 0
-    return data.direct_accounts.length + data.businesses.reduce((s, b) => s + b.accounts.length, 0)
+    return (data.manual_accounts?.length ?? 0)
+      + data.direct_accounts.length
+      + data.businesses.reduce((s, b) => s + b.accounts.length, 0)
   }, [data])
+
+  const handleRemoveManual = async (id: string) => {
+    try {
+      await apiMeta.removeManualAccount(id)
+      await refreshManual()
+    } catch { /* ignore */ }
+  }
 
   const handleManualVerify = async () => {
     setManualError(null)
@@ -92,7 +120,9 @@ export function MetaAccountPicker({
     }
     setVerifying(true)
     try {
-      const account = await apiMeta.verifyAccount(id)
+      // Verify + persist in one shot
+      const account = await apiMeta.saveManualAccount(id)
+      await refreshManual()
       onSelect(account)
       setManualId('')
       setManualOpen(false)
@@ -245,6 +275,18 @@ export function MetaAccountPicker({
       {/* Groups */}
       {visibleGroups && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 360, overflowY: 'auto' }}>
+          {/* Manual accounts (persisted) */}
+          {visibleGroups.manual.length > 0 && (
+            <BusinessSection
+              bm={{ id: '__manual__', name: '⭐ Adicionadas manualmente', accounts: visibleGroups.manual }}
+              expanded={expanded.has('__manual__') || !!search.trim()}
+              onToggle={() => toggleBM('__manual__')}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              removable
+              onRemove={handleRemoveManual}
+            />
+          )}
           {visibleGroups.businesses.map(bm => (
             <BusinessSection
               key={bm.id}
@@ -264,7 +306,7 @@ export function MetaAccountPicker({
               onSelect={onSelect}
             />
           )}
-          {search.trim() && visibleGroups.businesses.length === 0 && visibleGroups.direct.length === 0 && (
+          {search.trim() && visibleGroups.businesses.length === 0 && visibleGroups.direct.length === 0 && visibleGroups.manual.length === 0 && (
             <div style={{ padding: '14px', textAlign: 'center', color: T.muted, fontSize: 13 }}>
               Nenhuma conta encontrada para "<b>{search}</b>"
             </div>
@@ -294,9 +336,11 @@ interface BusinessSectionProps {
   onToggle: () => void
   selectedId: string | null
   onSelect: (a: MetaAdAccount) => void
+  removable?: boolean
+  onRemove?: (id: string) => void
 }
 
-function BusinessSection({ bm, expanded, onToggle, selectedId, onSelect }: BusinessSectionProps) {
+function BusinessSection({ bm, expanded, onToggle, selectedId, onSelect, removable, onRemove }: BusinessSectionProps) {
   return (
     <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 9, overflow: 'hidden' }}>
       <button
@@ -325,6 +369,8 @@ function BusinessSection({ bm, expanded, onToggle, selectedId, onSelect }: Busin
               account={acc}
               selected={isSelected(selectedId, acc.id)}
               onSelect={onSelect}
+              removable={removable}
+              onRemove={onRemove}
             />
           ))}
         </div>
@@ -333,7 +379,15 @@ function BusinessSection({ bm, expanded, onToggle, selectedId, onSelect }: Busin
   )
 }
 
-function AccountRow({ account, selected, onSelect }: { account: MetaAdAccount; selected: boolean; onSelect: (a: MetaAdAccount) => void }) {
+function AccountRow({
+  account, selected, onSelect, removable, onRemove,
+}: {
+  account: MetaAdAccount
+  selected: boolean
+  onSelect: (a: MetaAdAccount) => void
+  removable?: boolean
+  onRemove?: (id: string) => void
+}) {
   const cleanId = account.id.replace('act_', '')
   const active = account.account_status === 1
 
@@ -367,6 +421,21 @@ function AccountRow({ account, selected, onSelect }: { account: MetaAdAccount; s
           background: T.brand, display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 10, color: '#fff', fontWeight: 800, flexShrink: 0, marginLeft: 8,
         }}>✓</div>
+      )}
+      {removable && onRemove && (
+        <button
+          onClick={e => { e.stopPropagation(); onRemove(cleanId) }}
+          title="Remover da lista de salvas"
+          style={{
+            background: 'none', border: 'none',
+            color: T.hint, fontSize: 14, cursor: 'pointer',
+            padding: '4px 8px', borderRadius: 5, marginLeft: 6,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#ef4444' }}
+          onMouseLeave={e => { e.currentTarget.style.color = T.hint }}
+        >
+          ✕
+        </button>
       )}
     </div>
   )

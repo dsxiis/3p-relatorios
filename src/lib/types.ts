@@ -206,6 +206,7 @@ export interface BusinessGroup {
 export interface MetaAccountsGrouped {
   direct_accounts: MetaAdAccount[]
   businesses: BusinessGroup[]
+  manual_accounts?: MetaAdAccount[]   // saved by user, persists across sessions
 }
 
 /* ── APP STATE ────────────────────────────────────────── */

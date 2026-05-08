@@ -661,7 +661,8 @@ function QuickClientForm({ showToast }: { showToast: (msg: string) => void }) {
     }
     setVerifying(true)
     try {
-      const account = await apiMeta.verifyAccount(id)
+      // Save to manual list (persists for all future picker uses)
+      const account = await apiMeta.saveManualAccount(id)
       setVerified(account)
       setName(account.name)
       setStep('verified')
