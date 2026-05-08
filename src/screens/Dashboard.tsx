@@ -20,6 +20,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
   const [showModal, setShowModal] = useState(false)
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
+  const [search, setSearch] = useState('')
 
   const fetchClients = () => {
     setLoading(true)
@@ -129,13 +130,57 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
         </div>
       )}
 
-      {/* Client list header */}
+      {/* Client list header + search */}
       <div style={{
-        fontSize: 11, fontWeight: 700, color: T.hint,
-        letterSpacing: '0.8px', textTransform: 'uppercase',
-        marginBottom: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: 12, marginBottom: 12, flexWrap: 'wrap',
       }}>
-        Clientes
+        <div style={{
+          fontSize: 11, fontWeight: 700, color: T.hint,
+          letterSpacing: '0.8px', textTransform: 'uppercase',
+        }}>
+          Clientes {search && clients.length > 0 && (
+            <span style={{ fontWeight: 500, marginLeft: 6, color: T.muted, textTransform: 'none', letterSpacing: 0 }}>
+              · {clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).length} de {clients.length}
+            </span>
+          )}
+        </div>
+        {clients.length > 0 && (
+          <div style={{ position: 'relative', flex: '0 1 280px', minWidth: 200 }}>
+            <span style={{
+              position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
+              fontSize: 12, color: T.hint, pointerEvents: 'none',
+            }}>🔎</span>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar cliente..."
+              style={{
+                width: '100%', padding: '7px 32px 7px 32px',
+                borderRadius: 9, border: `0.5px solid ${T.border}`,
+                background: T.surface, color: T.text,
+                fontSize: 13, outline: 'none',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = T.brand; e.currentTarget.style.boxShadow = `0 0 0 3px ${T.brandDim}` }}
+              onBlur={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none' }}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                style={{
+                  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: T.muted, cursor: 'pointer',
+                  fontSize: 14, padding: '2px 6px', lineHeight: 1,
+                }}
+                title="Limpar busca"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Client list */}
@@ -145,9 +190,34 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
         </div>
       ) : clients.length === 0 ? (
         <EmptyState onAdd={() => setShowModal(true)} />
-      ) : (
+      ) : (() => {
+        const filtered = search
+          ? clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+          : clients
+        if (filtered.length === 0) {
+          return (
+            <div style={{
+              color: T.hint, fontSize: 13, padding: '40px 0', textAlign: 'center',
+              border: `0.5px dashed ${T.border}`, borderRadius: 12,
+            }}>
+              Nenhum cliente encontrado para <strong style={{ color: T.muted }}>"{search}"</strong>
+              <br />
+              <button
+                onClick={() => setSearch('')}
+                style={{
+                  marginTop: 10, background: 'none', border: `0.5px solid ${T.border}`,
+                  borderRadius: 7, padding: '5px 14px', fontSize: 12,
+                  color: T.muted, cursor: 'pointer',
+                }}
+              >
+                Limpar busca
+              </button>
+            </div>
+          )
+        }
+        return (
         <div className="dash-clients-grid">
-          {clients.map((c, i) => {
+          {filtered.map((c, i) => {
             const perClient = stats?.per_client_counts?.find(x => x.client_id === c.id)
             return (
               <ClientCard
@@ -165,7 +235,8 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
             )
           })}
         </div>
-      )}
+        )
+      })()}
 
       {showModal && (
         <NewClientModal
