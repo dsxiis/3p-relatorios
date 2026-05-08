@@ -177,9 +177,20 @@ export interface DashboardStats {
 /* ── SETTINGS / META GROUPED ──────────────────────────── */
 export interface MetaTokenInfo {
   set: boolean
-  source: 'db' | 'env' | null
+  source: 'oauth' | 'db' | 'env' | null
   preview: string | null
   updated_at: string | null
+}
+export interface MetaOAuthStatus {
+  connected: boolean
+  expired?: boolean
+  user_id?: string
+  user_name?: string
+  user_email?: string | null
+  picture?: string | null
+  expires_at?: string
+  connected_at?: string
+  days_left?: number
 }
 export interface AppSettings {
   meta_token: MetaTokenInfo

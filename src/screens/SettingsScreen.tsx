@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { AppSettings, MetaAdAccount, ClientType } from '../lib/types'
-import { apiSettings, apiMeta, apiClients } from '../lib/api'
+import type { AppSettings, MetaAdAccount, ClientType, MetaOAuthStatus } from '../lib/types'
+import { apiSettings, apiMeta, apiClients, apiAuth } from '../lib/api'
 import { T } from '../styles/tokens'
 import { relativeTime } from '../lib/utils'
 
@@ -24,12 +24,67 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<TestResult>({ kind: 'idle' })
 
+  // OAuth state
+  const [oauth, setOauth] = useState<MetaOAuthStatus | null>(null)
+  const [oauthLoading, setOauthLoading] = useState(true)
+  const [oauthBusy, setOauthBusy] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  const refreshAll = async () => {
+    setLoading(true)
+    setOauthLoading(true)
+    try {
+      const [s, o] = await Promise.all([
+        apiSettings.get().catch(() => null),
+        apiAuth.metaStatus().catch(() => ({ connected: false }) as MetaOAuthStatus),
+      ])
+      setSettings(s)
+      setOauth(o)
+    } finally {
+      setLoading(false)
+      setOauthLoading(false)
+    }
+  }
+
   useEffect(() => {
-    apiSettings.get()
-      .then(setSettings)
-      .catch(() => setSettings(null))
-      .finally(() => setLoading(false))
+    refreshAll()
+    // Handle redirect-back from Meta OAuth
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('meta_connected') === '1') {
+      showToast('✓ Conectado com Facebook')
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash)
+    }
+    const err = params.get('meta_error')
+    if (err) {
+      showToast(`Erro ao conectar: ${decodeURIComponent(err)}`)
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash)
+    }
   }, [])
+
+  const handleConnectFacebook = async () => {
+    setOauthBusy(true)
+    try {
+      const { url } = await apiAuth.metaStart()
+      window.location.href = url
+    } catch (e: any) {
+      showToast(e?.message || 'Erro ao iniciar conexão')
+      setOauthBusy(false)
+    }
+  }
+
+  const handleDisconnectFacebook = async () => {
+    if (!confirm('Desconectar conta do Facebook? Você precisará conectar novamente para gerar relatórios via Meta.')) return
+    setOauthBusy(true)
+    try {
+      await apiAuth.metaDisconnect()
+      setOauth({ connected: false })
+      showToast('Conta Facebook desconectada')
+    } catch (e: any) {
+      showToast(e?.message || 'Erro ao desconectar')
+    } finally {
+      setOauthBusy(false)
+    }
+  }
 
   const handleSaveAndTest = async () => {
     const token = tokenInput.trim()
@@ -80,8 +135,163 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
         Gerencie tokens de integração e preferências do sistema.
       </p>
 
-      {/* ── TOKEN META API ── */}
-      <Section title="Token Meta API" subtitle="Usado para puxar contas e dados de campanhas do Facebook/Meta">
+      {/* ── CONTA FACEBOOK (OAuth) ── */}
+      <Section title="Conta Facebook" subtitle="Conecte sua conta do Facebook para puxar dados de campanhas automaticamente">
+        {oauthLoading ? (
+          <div style={{ color: T.hint, fontSize: 13 }}>Carregando...</div>
+        ) : oauth?.connected ? (
+          <div>
+            {/* Connected card */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '14px 16px',
+              background: 'var(--green-dim)',
+              border: '1px solid var(--green-border)',
+              borderRadius: 10,
+              marginBottom: 12,
+            }}>
+              {oauth.picture ? (
+                <img
+                  src={oauth.picture} alt={oauth.user_name}
+                  style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, border: `1px solid ${T.border}` }}
+                />
+              ) : (
+                <div style={{
+                  width: 48, height: 48, borderRadius: '50%',
+                  background: 'linear-gradient(135deg,#1877F2,#0a4eb3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, color: '#fff', fontSize: 18, fontWeight: 800,
+                }}>
+                  {(oauth.user_name || '?').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {oauth.user_name}
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, color: '#fff',
+                    background: '#1877F2', padding: '2px 7px', borderRadius: 20,
+                    letterSpacing: '0.5px',
+                  }}>
+                    FACEBOOK
+                  </span>
+                </div>
+                {oauth.user_email && (
+                  <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>{oauth.user_email}</div>
+                )}
+                <div style={{ fontSize: 11, color: T.hint, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: (oauth.days_left ?? 60) < 7 ? 'var(--amber)' : 'var(--green)',
+                  }} />
+                  {oauth.days_left !== undefined ? (
+                    <>Token expira em <b>{oauth.days_left} dias</b></>
+                  ) : 'Token ativo'}
+                </div>
+              </div>
+              <button
+                onClick={handleDisconnectFacebook}
+                disabled={oauthBusy}
+                style={{
+                  background: 'none', border: `1px solid ${T.border}`,
+                  borderRadius: 8, padding: '8px 14px', fontSize: 12,
+                  color: T.muted, cursor: oauthBusy ? 'not-allowed' : 'pointer',
+                  fontWeight: 600, whiteSpace: 'nowrap',
+                }}
+              >
+                Desconectar
+              </button>
+            </div>
+
+            {(oauth.days_left ?? 60) < 7 && (
+              <div style={{
+                background: 'var(--amber-dim)', border: '1px solid var(--amber)',
+                borderRadius: 8, padding: '10px 14px', fontSize: 12, color: T.text,
+              }}>
+                ⚠ Token expira em breve. Clique em <b>Reconectar</b> abaixo para renovar por mais 60 dias.
+                <button
+                  onClick={handleConnectFacebook}
+                  disabled={oauthBusy}
+                  style={{
+                    marginLeft: 10,
+                    background: '#1877F2', color: '#fff', border: 'none',
+                    borderRadius: 6, padding: '5px 12px', fontSize: 11, fontWeight: 700,
+                    cursor: oauthBusy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Reconectar
+                </button>
+              </div>
+            )}
+
+            <div style={{ fontSize: 11, color: T.hint, marginTop: 12, lineHeight: 1.6 }}>
+              Permissões: leitura de contas e dados de campanha (read-only). Você pode revogar a qualquer momento em
+              {' '}<a href="https://www.facebook.com/settings?tab=applications" target="_blank" rel="noopener noreferrer" style={{ color: T.brand, textDecoration: 'none' }}>Facebook → Apps e sites</a>.
+            </div>
+          </div>
+        ) : (
+          <div>
+            <button
+              onClick={handleConnectFacebook}
+              disabled={oauthBusy}
+              style={{
+                background: '#1877F2',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                padding: '12px 22px',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: oauthBusy ? 'not-allowed' : 'pointer',
+                opacity: oauthBusy ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', gap: 10,
+                boxShadow: '0 1px 3px rgba(24,119,242,0.3)',
+                transition: 'transform 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              {oauthBusy ? 'Abrindo Facebook...' : 'Continuar com Facebook'}
+            </button>
+
+            <div style={{
+              marginTop: 16, padding: '12px 14px',
+              background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 8, fontSize: 12, color: T.muted, lineHeight: 1.6,
+            }}>
+              <div style={{ fontWeight: 700, color: T.text, marginBottom: 6 }}>🔒 O que isso permite:</div>
+              <ul style={{ paddingLeft: 18, margin: 0 }}>
+                <li><b>Ler</b> suas Business Managers e contas de anúncio (ads_read + business_management)</li>
+                <li><b>Ler</b> métricas de campanha (impressões, gasto, leads, cliques)</li>
+                <li><b>Não</b> permite criar, editar, pausar campanhas ou gastar dinheiro</li>
+                <li>Token expira em <b>60 dias</b> automaticamente</li>
+                <li>Você revoga em 1 clique aqui ou no Facebook</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </Section>
+
+      {/* ── ADVANCED: Manual token ── */}
+      <div style={{ marginBottom: 28 }}>
+        <button
+          onClick={() => setShowAdvanced(v => !v)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: T.muted, fontSize: 12, fontWeight: 600,
+            padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <span style={{ transition: 'transform 0.15s', transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0)' }}>▶</span>
+          Configurações avançadas
+        </button>
+      </div>
+
+      {showAdvanced && (
+      <Section title="Token Meta API (avançado)" subtitle="Use System User Token caso prefira não conectar com sua conta pessoal — não expira">
         {loading ? (
           <div style={{ color: T.hint, fontSize: 13 }}>Carregando...</div>
         ) : (
@@ -234,6 +444,7 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
           </>
         )}
       </Section>
+      )}
 
       {/* ── ADICIONAR CLIENTE POR ID META ── */}
       <Section

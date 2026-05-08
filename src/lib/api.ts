@@ -1,4 +1,4 @@
-import type { Client, Report, MetaAdAccount, MetaCampaignInsight, GenerateReportPayload, DashboardStats, AppSettings, MetaAccountsGrouped } from './types'
+import type { Client, Report, MetaAdAccount, MetaCampaignInsight, GenerateReportPayload, DashboardStats, AppSettings, MetaAccountsGrouped, MetaOAuthStatus } from './types'
 
 const WORKER_BASE = import.meta.env.VITE_WORKER_URL ?? 'http://localhost:8787'
 const API_KEY = import.meta.env.VITE_API_KEY ?? ''
@@ -74,4 +74,11 @@ export const apiSettings = {
       method: 'PATCH',
       body: JSON.stringify({ meta_token }),
     }),
+}
+
+/* ── AUTH (Meta OAuth) ────────────────────────────────── */
+export const apiAuth = {
+  metaStart: () => request<{ url: string }>('/api/auth/meta/start', { method: 'POST' }),
+  metaStatus: () => request<MetaOAuthStatus>('/api/auth/meta/status'),
+  metaDisconnect: () => request<{ ok: boolean }>('/api/auth/meta/disconnect', { method: 'POST' }),
 }
