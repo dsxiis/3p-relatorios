@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { AppSettings, MetaAdAccount, ClientType, MetaOAuthStatus } from '../lib/types'
+import type { AppSettings, MetaAdAccount, ClientType, MetaOAuthStatus, MetaAccountsGrouped } from '../lib/types'
 import { apiSettings, apiMeta, apiClients, apiAuth } from '../lib/api'
 import { T } from '../styles/tokens'
 import { relativeTime } from '../lib/utils'
@@ -488,6 +488,14 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
       </Section>
       )}
 
+      {/* ── CONTAS META DETECTADAS ── */}
+      <Section
+        title="Contas Meta detectadas"
+        subtitle="Todas as contas que o sistema enxerga com o token atual — diretas, agrupadas por BM e adicionadas manualmente"
+      >
+        <DetectedAccountsList showToast={showToast} />
+      </Section>
+
       {/* ── ADICIONAR CLIENTE POR ID META ── */}
       <Section
         title="Adicionar cliente rápido"
@@ -878,6 +886,239 @@ function QuickClientForm({ showToast }: { showToast: (msg: string) => void }) {
             Cancelar
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── DetectedAccountsList ─────────────────────────────── */
+
+function DetectedAccountsList({ showToast }: { showToast: (msg: string) => void }) {
+  const [data, setData] = useState<MetaAccountsGrouped | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
+
+  const load = async (showLoad = true) => {
+    if (showLoad) setLoading(true)
+    else setRefreshing(true)
+    setError(null)
+    try {
+      const d = await apiMeta.businesses()
+      setData(d)
+    } catch (e: any) {
+      setError(e?.message || 'Erro ao buscar contas')
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleRemoveManual = async (id: string) => {
+    if (!confirm('Remover esta conta da lista de salvas? Você pode adicionar de novo a qualquer momento.')) return
+    try {
+      await apiMeta.removeManualAccount(id)
+      showToast('Conta removida')
+      await load(false)
+    } catch (e: any) {
+      showToast(e?.message || 'Erro ao remover')
+    }
+  }
+
+  if (loading) return <div style={{ color: T.hint, fontSize: 13 }}>Carregando contas...</div>
+  if (error) return (
+    <div style={{ padding: '12px 14px', background: '#ff6b6b18', borderRadius: 8, fontSize: 13, color: '#ef4444' }}>
+      ✗ {error}
+    </div>
+  )
+  if (!data) return null
+
+  const manual = data.manual_accounts ?? []
+  const total = manual.length + data.direct_accounts.length + data.businesses.reduce((s, b) => s + b.accounts.length, 0)
+  const q = search.trim().toLowerCase()
+  const matches = (acc: MetaAdAccount) =>
+    !q || acc.name.toLowerCase().includes(q) || acc.id.replace(/^act_/, '').includes(q.replace(/^act_/, ''))
+
+  const filteredManual = manual.filter(matches)
+  const filteredDirect = data.direct_accounts.filter(matches)
+  const filteredBMs = data.businesses
+    .map(bm => ({ ...bm, accounts: bm.accounts.filter(matches) }))
+    .filter(bm => bm.accounts.length > 0 || bm.name.toLowerCase().includes(q))
+  const filteredTotal = filteredManual.length + filteredDirect.length + filteredBMs.reduce((s, b) => s + b.accounts.length, 0)
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="🔍 Buscar conta por nome ou ID..."
+          style={{
+            flex: 1, background: T.surface, border: `1px solid ${T.border}`,
+            borderRadius: 8, padding: '8px 12px', fontSize: 13, color: T.text,
+            outline: 'none',
+          }}
+          onFocus={e => (e.currentTarget.style.borderColor = T.brand)}
+          onBlur={e => (e.currentTarget.style.borderColor = T.border)}
+        />
+        <button
+          onClick={() => load(false)}
+          disabled={refreshing}
+          className="btn-ghost"
+          style={{ fontSize: 12, padding: '8px 14px', whiteSpace: 'nowrap' }}
+        >
+          {refreshing ? 'Atualizando...' : '↻ Atualizar'}
+        </button>
+      </div>
+
+      {/* Summary */}
+      <div style={{ fontSize: 12, color: T.muted, marginBottom: 12 }}>
+        {q
+          ? <><b style={{ color: T.text }}>{filteredTotal}</b> de <b>{total}</b> contas — busca: "<i>{search}</i>"</>
+          : <><b style={{ color: T.text }}>{total}</b> conta{total === 1 ? '' : 's'} detectada{total === 1 ? '' : 's'} · {data.businesses.length} Business Manager{data.businesses.length === 1 ? '' : 's'} · {manual.length} manuai{manual.length === 1 ? 's' : 's'}</>
+        }
+      </div>
+
+      {/* Empty */}
+      {total === 0 && (
+        <div style={{ padding: '20px 14px', background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 13, color: T.muted, textAlign: 'center' }}>
+          Nenhuma conta detectada. Verifique o token nas seções acima ou adicione manualmente abaixo.
+        </div>
+      )}
+
+      {q && filteredTotal === 0 && total > 0 && (
+        <div style={{ padding: '14px', textAlign: 'center', color: T.muted, fontSize: 13 }}>
+          Nenhuma conta encontrada para "<b>{search}</b>"
+        </div>
+      )}
+
+      {/* Groups */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
+        {filteredManual.length > 0 && (
+          <DetectedGroup
+            title="Adicionadas manualmente"
+            icon="⭐"
+            accounts={filteredManual}
+            onRemove={handleRemoveManual}
+          />
+        )}
+
+        {filteredBMs.map(bm => (
+          <DetectedGroup
+            key={bm.id}
+            title={bm.name}
+            icon="🏢"
+            accounts={bm.accounts}
+            subtitle={`Business Manager · ${bm.id}`}
+          />
+        ))}
+
+        {filteredDirect.length > 0 && (
+          <DetectedGroup
+            title="Sem Business Manager"
+            icon="📂"
+            accounts={filteredDirect}
+            subtitle="Contas vinculadas diretamente ao usuário do token"
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DetectedGroup({
+  title, icon, accounts, subtitle, onRemove,
+}: {
+  title: string
+  icon: string
+  accounts: MetaAdAccount[]
+  subtitle?: string
+  onRemove?: (id: string) => void
+}) {
+  return (
+    <div style={{
+      background: T.surface, border: `1px solid ${T.border}`,
+      borderRadius: 10, overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '10px 14px',
+        borderBottom: `1px solid ${T.border}`,
+        background: 'var(--surface2)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+            <span style={{ marginRight: 6 }}>{icon}</span>
+            {title}
+          </div>
+          <div style={{ fontSize: 11, color: T.hint }}>
+            {accounts.length} {accounts.length === 1 ? 'conta' : 'contas'}
+          </div>
+        </div>
+        {subtitle && (
+          <div style={{ fontSize: 11, color: T.muted, marginTop: 2, fontFamily: 'monospace' }}>
+            {subtitle}
+          </div>
+        )}
+      </div>
+      <div>
+        {accounts.map(acc => {
+          const cleanId = acc.id.replace(/^act_/, '')
+          const active = acc.account_status === 1
+          return (
+            <div
+              key={acc.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 14px', borderBottom: `1px solid ${T.border}`,
+                opacity: active ? 1 : 0.55,
+              }}
+            >
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: active ? 'var(--green)' : '#f87171', flexShrink: 0,
+              }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {acc.name}
+                </div>
+                <div style={{ fontSize: 11, color: T.muted, marginTop: 1, fontFamily: 'monospace' }}>
+                  act_{cleanId} · {acc.currency || '—'}
+                  {!active && <span style={{ color: '#f87171', marginLeft: 6 }}>inativa</span>}
+                </div>
+              </div>
+              <button
+                onClick={() => navigator.clipboard.writeText(`act_${cleanId}`)}
+                title="Copiar ID"
+                style={{
+                  background: 'none', border: `1px solid ${T.border}`,
+                  borderRadius: 6, padding: '4px 9px', fontSize: 11,
+                  color: T.muted, cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                Copiar ID
+              </button>
+              {onRemove && (
+                <button
+                  onClick={() => onRemove(cleanId)}
+                  title="Remover da lista"
+                  style={{
+                    background: 'none', border: 'none',
+                    color: T.hint, cursor: 'pointer', padding: '4px 8px',
+                    fontSize: 14, borderRadius: 6,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#ef4444' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = T.hint }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
