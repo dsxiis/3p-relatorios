@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import type { AppSettings } from '../lib/types'
-import { apiSettings, apiMeta } from '../lib/api'
+import type { AppSettings, MetaAdAccount, ClientType } from '../lib/types'
+import { apiSettings, apiMeta, apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
 import { relativeTime } from '../lib/utils'
 
 interface SettingsScreenProps {
   showToast: (msg: string) => void
 }
+
+const COLORS = ['#8B35E8', '#6C3CE1', '#E8355A', '#E87A35', '#35B8E8', '#35E87A']
 
 type TestResult =
   | { kind: 'idle' }
@@ -233,6 +235,14 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
         )}
       </Section>
 
+      {/* ── ADICIONAR CLIENTE POR ID META ── */}
+      <Section
+        title="Adicionar cliente rápido"
+        subtitle="Crie um cliente direto pelo ID da conta Meta — útil quando a conta não aparece na lista do picker"
+      >
+        <QuickClientForm showToast={showToast} />
+      </Section>
+
       {/* ── SOBRE ── */}
       <Section title="Sobre" subtitle="Informações do sistema">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
@@ -273,6 +283,260 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
         fontFamily: mono ? 'monospace' : undefined,
         fontSize: mono ? 12 : 13,
       }}>{value}</span>
+    </div>
+  )
+}
+
+/* ── QuickClientForm ──────────────────────────────────────── */
+
+type Step = 'id' | 'verified' | 'saving' | 'done'
+
+function QuickClientForm({ showToast }: { showToast: (msg: string) => void }) {
+  const [step, setStep] = useState<Step>('id')
+  const [metaId, setMetaId] = useState('')
+  const [verifying, setVerifying] = useState(false)
+  const [verified, setVerified] = useState<MetaAdAccount | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [type, setType] = useState<ClientType>('lead_gen')
+  const [color, setColor] = useState(COLORS[0])
+
+  const reset = () => {
+    setStep('id')
+    setMetaId('')
+    setVerified(null)
+    setName('')
+    setType('lead_gen')
+    setColor(COLORS[0])
+    setError(null)
+  }
+
+  const handleVerify = async () => {
+    setError(null)
+    const id = metaId.trim()
+    if (!id) {
+      setError('Cole o ID da conta Meta (ex: act_123456789)')
+      return
+    }
+    setVerifying(true)
+    try {
+      const account = await apiMeta.verifyAccount(id)
+      setVerified(account)
+      setName(account.name)
+      setStep('verified')
+    } catch (e: any) {
+      setError(e?.message || 'Conta não encontrada ou sem acesso')
+    } finally {
+      setVerifying(false)
+    }
+  }
+
+  const handleCreate = async () => {
+    if (!verified) return
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setError('Nome do cliente é obrigatório')
+      return
+    }
+    setStep('saving')
+    setError(null)
+    try {
+      const cleanId = verified.id.replace(/^act_/, '')
+      const client = await apiClients.create({
+        name: trimmed,
+        type,
+        color,
+        meta_account_id: cleanId,
+      })
+      showToast(`✓ ${client.name} criado e vinculado`)
+      setStep('done')
+      // Reset after a moment for the next addition
+      setTimeout(reset, 1200)
+    } catch (e: any) {
+      setError(e?.message || 'Erro ao criar cliente')
+      setStep('verified')
+    }
+  }
+
+  // Step 1: enter ID
+  if (step === 'id') {
+    return (
+      <div>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 6 }}>
+          ID da conta Meta
+        </label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={metaId}
+            onChange={e => { setMetaId(e.target.value); setError(null) }}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleVerify() } }}
+            placeholder="act_123456789 ou 123456789"
+            disabled={verifying}
+            style={{
+              flex: 1, background: T.surface, border: `1px solid ${error ? '#ef4444' : T.border}`,
+              borderRadius: 8, padding: '10px 12px', fontSize: 13, color: T.text,
+              outline: 'none', fontFamily: 'monospace',
+            }}
+            onFocus={e => { if (!error) e.currentTarget.style.borderColor = T.brand }}
+            onBlur={e => { if (!error) e.currentTarget.style.borderColor = T.border }}
+          />
+          <button
+            onClick={handleVerify}
+            disabled={verifying || !metaId.trim()}
+            className="btn-primary"
+            style={{
+              fontSize: 13, padding: '10px 20px', fontWeight: 700,
+              opacity: verifying || !metaId.trim() ? 0.6 : 1,
+              cursor: verifying || !metaId.trim() ? 'not-allowed' : 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {verifying ? 'Verificando...' : 'Verificar →'}
+          </button>
+        </div>
+        {error && (
+          <div style={{ fontSize: 12, color: '#ef4444', marginTop: 8 }}>{error}</div>
+        )}
+        <div style={{ fontSize: 11, color: T.hint, marginTop: 10, lineHeight: 1.6 }}>
+          Encontre o ID em <b>Meta Business Suite</b> → Contas de anúncio → ao clicar na conta, o ID aparece na URL ou nas configurações.
+        </div>
+      </div>
+    )
+  }
+
+  // Step 2-3: verified, fill name+type
+  return (
+    <div>
+      {/* Verified banner */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '10px 14px',
+        background: 'var(--green-dim)',
+        border: '1px solid var(--green-border)',
+        borderRadius: 9, marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 16 }}>✓</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+            {verified?.name}
+          </div>
+          <div style={{ fontSize: 11, color: T.muted, fontFamily: 'monospace', marginTop: 1 }}>
+            act_{verified?.id.replace(/^act_/, '')} · {verified?.currency}
+            {verified?.account_status !== 1 && (
+              <span style={{ color: '#f87171', marginLeft: 6 }}>(inativa)</span>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={reset}
+          disabled={step === 'saving'}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: T.muted, fontSize: 12, fontWeight: 600,
+            padding: '4px 8px',
+          }}
+        >
+          Trocar
+        </button>
+      </div>
+
+      {/* Name + type + color */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 6 }}>
+            Nome do cliente
+          </label>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Nome interno do cliente"
+            disabled={step === 'saving'}
+            style={{
+              width: '100%', background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 8, padding: '9px 12px', fontSize: 13, color: T.text, outline: 'none',
+            }}
+            onFocus={e => (e.currentTarget.style.borderColor = T.brand)}
+            onBlur={e => (e.currentTarget.style.borderColor = T.border)}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 6 }}>
+            Tipo
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {(['lead_gen', 'franchise'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setType(t)}
+                disabled={step === 'saving'}
+                style={{
+                  flex: 1,
+                  background: type === t ? `${T.brand}20` : T.surface,
+                  border: `1px solid ${type === t ? T.brand : T.border}`,
+                  borderRadius: 8, padding: '9px 12px',
+                  fontSize: 13, fontWeight: 600,
+                  color: type === t ? T.text : T.muted,
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                {t === 'lead_gen' ? 'Lead Gen' : 'Franquia'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 6 }}>
+            Cor do avatar
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {COLORS.map(c => (
+              <button
+                key={c}
+                onClick={() => setColor(c)}
+                disabled={step === 'saving'}
+                style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  background: c, border: 'none', cursor: 'pointer',
+                  outline: color === c ? `2px solid ${T.text}` : 'none',
+                  outlineOffset: 2,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <div style={{ fontSize: 12, color: '#ef4444' }}>{error}</div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <button
+            onClick={handleCreate}
+            disabled={step === 'saving' || step === 'done' || !name.trim()}
+            className="btn-primary"
+            style={{
+              fontSize: 13, padding: '10px 20px', fontWeight: 700,
+              opacity: (step === 'saving' || step === 'done' || !name.trim()) ? 0.6 : 1,
+              cursor: (step === 'saving' || step === 'done' || !name.trim()) ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {step === 'saving' ? 'Criando...' : step === 'done' ? '✓ Criado!' : 'Criar cliente'}
+          </button>
+          <button
+            onClick={reset}
+            disabled={step === 'saving'}
+            style={{
+              background: 'none', border: `1px solid ${T.border}`,
+              borderRadius: 8, padding: '10px 18px', fontSize: 13,
+              color: T.muted, cursor: 'pointer', fontWeight: 600,
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
