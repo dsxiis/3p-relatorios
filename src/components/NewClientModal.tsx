@@ -79,7 +79,7 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
       const unitList = units
         .map(u => u.trim())
         .filter(Boolean)
-        .map(u => ({ name: u }))
+        .map(u => ({ name: u, meta_account_id: null as string | null }))
 
       const client = await apiClients.create({
         name: name.trim(),
@@ -294,6 +294,12 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
         {/* Step 2 — Unidades */}
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              padding: '10px 14px', background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 9, fontSize: 12, color: T.muted, lineHeight: 1.6,
+            }}>
+              💡 Cada unidade tem sua <b>própria conta Meta Ads</b>. Aqui você só cadastra o nome — depois você vincula a conta de anúncios de cada unidade na tela do cliente.
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxHeight: 300, overflowY: 'auto' }}>
               {units.map((u, i) => (
                 <div key={i} style={{ display: 'flex', gap: 7 }}>
@@ -352,19 +358,20 @@ export function NewClientModal({ onClose, onCreate }: NewClientModalProps) {
                 ← Voltar
               </button>
               <button
-                onClick={() => setStep(3)}
-                disabled={validUnits === 0}
+                onClick={handleSubmit}
+                disabled={validUnits === 0 || loading}
                 style={{
                   flex: 2,
                   background: validUnits === 0 ? T.surface2 : `linear-gradient(135deg,#5B18A8,${T.brand})`,
                   color: validUnits === 0 ? T.muted : '#fff',
                   border: 'none', borderRadius: 9,
                   padding: '11px', fontSize: 14, fontWeight: 700,
-                  cursor: validUnits === 0 ? 'not-allowed' : 'pointer',
+                  cursor: (validUnits === 0 || loading) ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
                   transition: 'opacity 0.15s',
                 }}
               >
-                Próximo →
+                {loading ? 'Criando...' : 'Criar franquia →'}
               </button>
             </div>
           </div>

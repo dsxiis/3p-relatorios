@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import type { Client, MetaAdAccount, Report, Screen } from '../lib/types'
+import type { Client, MetaAdAccount, Report, Screen, FranchiseUnit } from '../lib/types'
 import { apiReports, apiClients } from '../lib/api'
 import { T } from '../styles/tokens'
 import { MetaAccountPicker } from '../components/MetaAccountPicker'
@@ -24,9 +24,10 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
   const [clientDescription, setClientDescription] = useState<string | null>(client.description ?? null)
   const [savingLogo, setSavingLogo] = useState(false)
   const [logoDragging, setLogoDragging] = useState(false)
+  const [units, setUnits] = useState<FranchiseUnit[]>(client.units ?? [])
   const logoInputRef = useRef<HTMLInputElement>(null)
 
-  // Fetch fresh client data on mount so we always show the latest logo/meta
+  // Fetch fresh client data on mount so we always show the latest logo/meta/units
   useEffect(() => {
     apiClients.get(client.id)
       .then(fresh => {
@@ -35,10 +36,18 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
         setClientColor((fresh as any).color ?? '#8B35E8')
         setClientName(fresh.name)
         setClientDescription(fresh.description ?? null)
+        setUnits(fresh.units ?? [])
         onClientUpdated?.(fresh)
       })
       .catch(() => {/* use prop data as fallback */})
   }, [client.id])
+
+  const refreshUnits = async () => {
+    try {
+      const fresh = await apiClients.get(client.id)
+      setUnits(fresh.units ?? [])
+    } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     apiReports.list(client.id)
@@ -226,7 +235,18 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
         </div>
       </div>
 
-      {/* Meta Account section */}
+      {/* ── FRANCHISE UNITS (each with own Meta account) ── */}
+      {client.type === 'franchise' && (
+        <FranchiseUnitsSection
+          clientId={client.id}
+          units={units}
+          onChanged={refreshUnits}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Meta Account section — only for lead_gen */}
+      {client.type === 'lead_gen' && (
       <div style={{
         background: T.surface,
         border: `0.5px solid ${T.border}`,
@@ -292,6 +312,7 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
           <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>Salvando...</div>
         )}
       </div>
+      )}
 
       {/* Reports list */}
       <div style={{
@@ -337,6 +358,271 @@ interface ReportRowProps {
   onView: () => void
   onDownload: () => void
   onDelete: () => void
+}
+
+/* ── FranchiseUnitsSection ───────────────────────────── */
+
+interface FranchiseUnitsSectionProps {
+  clientId: string
+  units: FranchiseUnit[]
+  onChanged: () => void
+  showToast: (msg: string) => void
+}
+
+function FranchiseUnitsSection({ clientId, units, onChanged, showToast }: FranchiseUnitsSectionProps) {
+  const [linkingUnitId, setLinkingUnitId] = useState<string | null>(null)
+  const [editingNameId, setEditingNameId] = useState<string | null>(null)
+  const [nameValue, setNameValue] = useState('')
+  const [adding, setAdding] = useState(false)
+  const [newUnitName, setNewUnitName] = useState('')
+
+  const linkedCount = units.filter(u => u.meta_account_id).length
+
+  const handleSelectAccount = async (unitId: string, account: MetaAdAccount) => {
+    const cleanId = account.id.replace(/^act_/, '')
+    try {
+      await apiClients.updateUnit(clientId, unitId, { meta_account_id: cleanId })
+      showToast(`✓ Unidade vinculada a ${account.name}`)
+      setLinkingUnitId(null)
+      onChanged()
+    } catch (e: any) {
+      showToast(e?.message || 'Erro ao vincular conta')
+    }
+  }
+
+  const handleRemoveAccount = async (unitId: string) => {
+    if (!confirm('Desvincular conta Meta dessa unidade?')) return
+    try {
+      await apiClients.updateUnit(clientId, unitId, { meta_account_id: null })
+      onChanged()
+    } catch (e: any) {
+      showToast(e?.message || 'Erro')
+    }
+  }
+
+  const handleRenameUnit = async (unitId: string) => {
+    if (!nameValue.trim()) { setEditingNameId(null); return }
+    try {
+      await apiClients.updateUnit(clientId, unitId, { name: nameValue.trim() })
+      onChanged()
+    } catch (e: any) {
+      showToast(e?.message || 'Erro ao renomear')
+    } finally {
+      setEditingNameId(null)
+    }
+  }
+
+  const handleDeleteUnit = async (unitId: string) => {
+    if (!confirm('Remover essa unidade? Os relatórios já gerados continuam, mas novos não vão incluir ela.')) return
+    try {
+      await apiClients.removeUnit(clientId, unitId)
+      onChanged()
+    } catch (e: any) {
+      showToast(e?.message || 'Erro')
+    }
+  }
+
+  const handleAddUnit = async () => {
+    if (!newUnitName.trim()) return
+    try {
+      await apiClients.addUnit(clientId, { name: newUnitName.trim() })
+      setNewUnitName('')
+      setAdding(false)
+      onChanged()
+    } catch (e: any) {
+      showToast(e?.message || 'Erro ao adicionar unidade')
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.hint, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 4 }}>
+            Unidades da Franquia
+          </div>
+          <div style={{ fontSize: 12, color: T.muted }}>
+            <b style={{ color: T.text }}>{linkedCount}</b> de <b style={{ color: T.text }}>{units.length}</b> unidades com conta Meta vinculada
+          </div>
+        </div>
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="btn-ghost"
+            style={{ fontSize: 12, padding: '6px 12px' }}
+          >
+            + Nova unidade
+          </button>
+        )}
+      </div>
+
+      {adding && (
+        <div style={{
+          display: 'flex', gap: 8, marginBottom: 10,
+          padding: '12px', background: T.surface,
+          border: `1px dashed ${T.brand}`, borderRadius: 9,
+        }}>
+          <input
+            autoFocus
+            value={newUnitName}
+            onChange={e => setNewUnitName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') { e.preventDefault(); handleAddUnit() }
+              if (e.key === 'Escape') { setAdding(false); setNewUnitName('') }
+            }}
+            placeholder="Nome da unidade (ex: Campinas)"
+            style={{
+              flex: 1, background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 7, padding: '7px 10px', fontSize: 13, color: T.text, outline: 'none',
+            }}
+          />
+          <button
+            onClick={handleAddUnit}
+            disabled={!newUnitName.trim()}
+            className="btn-primary"
+            style={{ fontSize: 12, padding: '7px 14px', opacity: newUnitName.trim() ? 1 : 0.5 }}
+          >
+            Adicionar
+          </button>
+          <button
+            onClick={() => { setAdding(false); setNewUnitName('') }}
+            style={{
+              background: 'none', border: `1px solid ${T.border}`,
+              borderRadius: 7, padding: '7px 12px', fontSize: 12, color: T.muted, cursor: 'pointer',
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
+
+      {units.length === 0 ? (
+        <div style={{
+          padding: '20px', background: T.surface, border: `1px dashed ${T.border}`,
+          borderRadius: 12, textAlign: 'center', fontSize: 13, color: T.muted,
+        }}>
+          Nenhuma unidade cadastrada. Clique em <b>+ Nova unidade</b> acima.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {units.map(unit => (
+            <div
+              key={unit.id}
+              style={{
+                background: T.surface, border: `0.5px solid ${T.border}`,
+                borderRadius: 11, overflow: 'hidden',
+              }}
+            >
+              {/* Unit header row */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '12px 16px',
+              }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: unit.meta_account_id ? '#22c55e' : 'var(--amber)',
+                  flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {editingNameId === unit.id ? (
+                    <input
+                      autoFocus
+                      value={nameValue}
+                      onChange={e => setNameValue(e.target.value)}
+                      onBlur={() => handleRenameUnit(unit.id)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') { e.preventDefault(); handleRenameUnit(unit.id) }
+                        if (e.key === 'Escape') setEditingNameId(null)
+                      }}
+                      style={{
+                        background: T.surface, border: `1.5px solid ${T.brand}`,
+                        borderRadius: 6, padding: '3px 8px', fontSize: 14, fontWeight: 700,
+                        color: T.text, outline: 'none', width: '100%',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      onClick={() => { setEditingNameId(unit.id); setNameValue(unit.name) }}
+                      style={{ fontSize: 14, fontWeight: 700, color: T.text, cursor: 'pointer' }}
+                      title="Clique para renomear"
+                    >
+                      {unit.name}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                    {unit.meta_account_id ? (
+                      <>
+                        <span style={{ fontFamily: 'monospace' }}>act_{unit.meta_account_id}</span>
+                        {' · '}<span style={{ color: '#22c55e' }}>vinculada</span>
+                      </>
+                    ) : (
+                      <span style={{ color: 'var(--amber)' }}>⚠ Sem conta Meta — relatório dessa unidade ficará vazio</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                  {unit.meta_account_id && (
+                    <button
+                      onClick={() => handleRemoveAccount(unit.id)}
+                      title="Desvincular conta"
+                      style={{
+                        background: 'none', border: `1px solid ${T.border}`,
+                        borderRadius: 6, padding: '5px 10px', fontSize: 11,
+                        color: T.muted, cursor: 'pointer',
+                      }}
+                    >
+                      Desvincular
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setLinkingUnitId(linkingUnitId === unit.id ? null : unit.id)}
+                    style={{
+                      background: unit.meta_account_id ? T.surface : T.brand,
+                      color: unit.meta_account_id ? T.text : '#fff',
+                      border: unit.meta_account_id ? `1px solid ${T.border}` : 'none',
+                      borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600,
+                      cursor: 'pointer', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {linkingUnitId === unit.id ? 'Cancelar' : (unit.meta_account_id ? 'Trocar' : 'Vincular Meta')}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUnit(unit.id)}
+                    title="Remover unidade"
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: T.hint, fontSize: 14, padding: '6px 8px', borderRadius: 6,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#ef4444' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = T.hint }}
+                  >
+                    🗑
+                  </button>
+                </div>
+              </div>
+
+              {/* Inline picker */}
+              {linkingUnitId === unit.id && (
+                <div style={{
+                  padding: '12px 16px', borderTop: `1px solid ${T.border}`,
+                  background: 'var(--surface2)',
+                }}>
+                  <MetaAccountPicker
+                    selectedId={unit.meta_account_id}
+                    onSelect={(acc) => handleSelectAccount(unit.id, acc)}
+                    onSkip={() => setLinkingUnitId(null)}
+                    skipLabel="Cancelar"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {

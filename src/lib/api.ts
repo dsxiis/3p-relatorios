@@ -23,7 +23,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const apiClients = {
   list: () => request<Client[]>('/api/clients'),
   get: (id: string) => request<Client>(`/api/clients/${id}`),
-  create: (body: { name: string; type: string; description?: string; meta_account_id?: string; logo?: string; color?: string; units?: { name: string }[] }) =>
+  create: (body: { name: string; type: string; description?: string; meta_account_id?: string; logo?: string; color?: string; units?: { name: string; meta_account_id?: string | null }[] }) =>
     request<Client>('/api/clients', { method: 'POST', body: JSON.stringify(body) }),
   rename: (id: string, name: string) =>
     request<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
@@ -32,6 +32,19 @@ export const apiClients = {
   updateLogo: (id: string, logo: string | null) =>
     request<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify({ logo }) }),
   delete: (id: string) => request<{ ok: boolean }>(`/api/clients/${id}`, { method: 'DELETE' }),
+  // Franchise units management
+  addUnit: (clientId: string, body: { name: string; meta_account_id?: string | null }) =>
+    request<{ id: string; name: string; meta_account_id: string | null }>(
+      `/api/clients/${clientId}/units`,
+      { method: 'POST', body: JSON.stringify(body) }
+    ),
+  updateUnit: (clientId: string, unitId: string, body: { name?: string; meta_account_id?: string | null }) =>
+    request<{ id: string; name: string; meta_account_id: string | null }>(
+      `/api/clients/${clientId}/units/${unitId}`,
+      { method: 'PATCH', body: JSON.stringify(body) }
+    ),
+  removeUnit: (clientId: string, unitId: string) =>
+    request<{ ok: boolean }>(`/api/clients/${clientId}/units/${unitId}`, { method: 'DELETE' }),
 }
 
 /* ── REPORTS ──────────────────────────────────────────── */

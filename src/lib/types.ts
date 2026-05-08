@@ -10,6 +10,12 @@ export interface FranchiseUnit {
   created_at: string
 }
 
+// Used when creating units (no id yet)
+export interface FranchiseUnitInput {
+  name: string
+  meta_account_id?: string | null
+}
+
 export interface Client {
   id: string
   name: string
