@@ -34,6 +34,18 @@ export interface Client {
 }
 
 /* ── TEMPLATE DATA ────────────────────────────────────── */
+export interface CreativeData {
+  clicks: number
+  leads: number
+  cpl: number
+  impressions?: number
+  ctr?: number
+  ad_id?: string
+  ad_name?: string | null
+  preview_link?: string | null
+  thumbnail_url?: string | null
+}
+
 export interface LeadGenCampaign {
   id: string
   name: string
@@ -43,7 +55,9 @@ export interface LeadGenCampaign {
   leads: number
   cpl: number
   cplPrevPeriod?: number
-  topCreative?: { clicks: number; leads: number; cpl: number; impressions?: number; ctr?: number }
+  topCreative?: CreativeData
+  topVideo?: CreativeData
+  topImage?: CreativeData
   annotation: string
 }
 

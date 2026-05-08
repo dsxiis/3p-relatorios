@@ -16,6 +16,9 @@ interface CreativeSpotProps {
   label: string
   metrics?: CreativeMetrics
   dark?: boolean
+  // Link pra abrir o anúncio na Meta Ads Manager (opcional)
+  previewLink?: string | null
+  adName?: string | null
   // Edit states — all optional for backwards compat
   eImage?: EditState
   eClicks?: EditState
@@ -34,6 +37,8 @@ export function CreativeSpot({
   label,
   metrics,
   dark = false,
+  previewLink,
+  adName,
   eImage,
   eClicks,
   eLeads,
@@ -61,17 +66,50 @@ export function CreativeSpot({
       borderRadius: t.cardRadius + 2,
       overflow: 'hidden',
     }}>
-      {/* Label strip */}
+      {/* Label strip + nome do ad + link */}
       <div style={{
         padding: '8px 12px',
-        fontSize: 11,
-        fontWeight: 700,
-        color: muted,
-        textTransform: 'uppercase',
-        letterSpacing: '0.8px',
         borderBottom: `1px solid ${border}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
       }}>
-        {label}
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: muted,
+            textTransform: 'uppercase',
+            letterSpacing: '0.8px',
+          }}>
+            {label}
+          </div>
+          {adName && (
+            <div style={{
+              fontSize: 10, color: muted, marginTop: 2,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}
+            title={adName}
+            >
+              {adName}
+            </div>
+          )}
+        </div>
+        {previewLink && (
+          <a
+            href={previewLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Abrir anúncio na Meta"
+            style={{
+              fontSize: 11, color: t.accent, fontWeight: 700,
+              textDecoration: 'none',
+              padding: '3px 8px', borderRadius: 5,
+              background: `${t.accent}18`,
+              flexShrink: 0,
+            }}
+          >
+            ↗ Ver
+          </a>
+        )}
       </div>
 
       {/* === METRICS PANEL (em destaque, em cima) === */}

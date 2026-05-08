@@ -6,6 +6,10 @@ export const topCreativeSchema = z.object({
   cpl: z.number(),
   impressions: z.number().optional(),
   ctr: z.number().optional(),
+  ad_id: z.string().optional(),
+  ad_name: z.string().nullable().optional(),
+  preview_link: z.string().nullable().optional(),
+  thumbnail_url: z.string().nullable().optional(),
 })
 
 export const leadGenCampaignSchema = z.object({
@@ -18,6 +22,8 @@ export const leadGenCampaignSchema = z.object({
   cpl: z.number(),
   cplPrevPeriod: z.number().optional(),
   topCreative: topCreativeSchema.optional(),
+  topVideo: topCreativeSchema.optional(),
+  topImage: topCreativeSchema.optional(),
   annotation: z.string().default(''),
 })
 

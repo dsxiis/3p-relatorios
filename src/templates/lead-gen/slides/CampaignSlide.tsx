@@ -25,23 +25,36 @@ interface CampaignSlideProps {
   ePeriod: EditState
   eAnnotation: EditState
   eName: EditState
-  eCreativeImage: EditState
-  eCreativeClicks: EditState
-  eCreativeLeads: EditState
-  eCreativeCpl: EditState
-  eCreativeImpressions: EditState
-  eCreativeCtr: EditState
-  eCreativeVisible: EditState  // 'true' | 'false'
+  // Vídeo (criativo de vídeo)
+  eVideoImage: EditState
+  eVideoClicks: EditState
+  eVideoLeads: EditState
+  eVideoCpl: EditState
+  eVideoImpressions: EditState
+  eVideoCtr: EditState
+  // Imagem (criativo estático)
+  eImageImage: EditState
+  eImageClicks: EditState
+  eImageLeads: EditState
+  eImageCpl: EditState
+  eImageImpressions: EditState
+  eImageCtr: EditState
+  eCreativeVisible: EditState  // 'true' | 'false' — esconde a coluna inteira
 }
 
 export function CampaignSlide({
   campaign, clientName, clientLogo, metrics,
   ePeriod, eAnnotation, eName,
-  eCreativeImage, eCreativeClicks, eCreativeLeads, eCreativeCpl,
-  eCreativeImpressions, eCreativeCtr, eCreativeVisible,
+  eVideoImage, eVideoClicks, eVideoLeads, eVideoCpl, eVideoImpressions, eVideoCtr,
+  eImageImage, eImageClicks, eImageLeads, eImageCpl, eImageImpressions, eImageCtr,
+  eCreativeVisible,
 }: CampaignSlideProps) {
   const t = useTheme()
   const showCreative = eCreativeVisible.value !== 'false'
+
+  // Fallback: se não tem topVideo/topImage, usa topCreative (legado)
+  const videoData = campaign.topVideo ?? campaign.topCreative
+  const imageData = campaign.topImage ?? campaign.topCreative
 
   return (
     <SlideShell>
@@ -60,16 +73,16 @@ export function CampaignSlide({
         </div>
       </div>
 
-      {/* Main grid: metrics+annotations | creative */}
+      {/* Main grid: metrics+annotations | melhor vídeo | melhor estático */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: showCreative ? '2fr 1fr' : '1fr',
-        gap: 32,
-        alignItems: 'flex-start',  // alinha topo — preview do criativo fica na linha do "Leads"
+        gridTemplateColumns: showCreative ? '1.4fr 1fr 1fr' : '1fr',
+        gap: 20,
+        alignItems: 'flex-start',
       }}>
-        {/* Left: metrics → annotations fills remaining height */}
+        {/* Esquerda: metrics → annotations */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <MetricGrid metrics={metrics} columns={3} />
+          <MetricGrid metrics={metrics} columns={2} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <SectionLabel style={{ marginBottom: 10 }}>Anotações</SectionLabel>
             <EditableText
@@ -80,20 +93,16 @@ export function CampaignSlide({
           </div>
         </div>
 
-        {/* Right: creative */}
+        {/* Centro: Melhor Vídeo */}
         {showCreative && (
-          <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-            {/* Botão × ocultar absoluto pra não empurrar o card pra baixo (alinha com INVESTIDO) */}
+          <div style={{ position: 'relative' }}>
             <button
               data-editor-only="true"
               onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save('false') }}
               style={{
-                position: 'absolute',
-                top: -22,
-                right: 0,
+                position: 'absolute', top: -22, right: 0, zIndex: 5,
                 background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
                 cursor: 'pointer', padding: '2px 4px',
-                zIndex: 5,
               }}
               onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
               onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
@@ -101,26 +110,52 @@ export function CampaignSlide({
               × ocultar
             </button>
             <CreativeSpot
-              label="Melhor Criativo"
+              label="🎬 Melhor Vídeo"
               metrics={{
-                clicks: campaign.topCreative?.clicks,
-                leads: campaign.topCreative?.leads,
-                cpl: campaign.topCreative?.cpl,
-                impressions: campaign.topCreative?.impressions,
-                ctr: campaign.topCreative?.ctr,
+                clicks: videoData?.clicks,
+                leads: videoData?.leads,
+                cpl: videoData?.cpl,
+                impressions: videoData?.impressions,
+                ctr: videoData?.ctr,
               }}
-              eImage={eCreativeImage}
-              eClicks={eCreativeClicks}
-              eLeads={eCreativeLeads}
-              eCpl={eCreativeCpl}
-              eImpressions={eCreativeImpressions}
-              eCtr={eCreativeCtr}
+              previewLink={videoData?.preview_link}
+              adName={videoData?.ad_name}
+              eImage={eVideoImage}
+              eClicks={eVideoClicks}
+              eLeads={eVideoLeads}
+              eCpl={eVideoCpl}
+              eImpressions={eVideoImpressions}
+              eCtr={eVideoCtr}
+            />
+          </div>
+        )}
+
+        {/* Direita: Melhor Estático */}
+        {showCreative && (
+          <div>
+            <CreativeSpot
+              label="🖼 Melhor Estático"
+              metrics={{
+                clicks: imageData?.clicks,
+                leads: imageData?.leads,
+                cpl: imageData?.cpl,
+                impressions: imageData?.impressions,
+                ctr: imageData?.ctr,
+              }}
+              previewLink={imageData?.preview_link}
+              adName={imageData?.ad_name}
+              eImage={eImageImage}
+              eClicks={eImageClicks}
+              eLeads={eImageLeads}
+              eCpl={eImageCpl}
+              eImpressions={eImageImpressions}
+              eCtr={eImageCtr}
             />
           </div>
         )}
       </div>
 
-      {/* Add creative back if hidden */}
+      {/* Add creatives back if hidden */}
       {!showCreative && (
         <div data-editor-only="true" style={{ marginTop: 16 }}>
           <button
@@ -132,7 +167,7 @@ export function CampaignSlide({
             onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
           >
-            + Melhor Criativo
+            + Melhores Criativos (Vídeo + Estático)
           </button>
         </div>
       )}

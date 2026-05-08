@@ -55,6 +55,8 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
           { label: 'CPL Anterior', value: campaign.cplPrevPeriod ? fmtBRL(campaign.cplPrevPeriod) : '—', sub: 'período anterior', e: mkEdit(`${pfx}.cplPrev`, campaign.cplPrevPeriod ? fmtBRL(campaign.cplPrevPeriod) : '—'), eVisible: mkEdit(`vis.${pfx}.cplPrev`, 'true') },
           { label: 'Cliques',      value: fmtNum(campaign.clicks),                       e: mkEdit(`${pfx}.clicks`, fmtNum(campaign.clicks)),                       eVisible: mkEdit(`vis.${pfx}.clicks`, 'true') },
         ]
+        const v = campaign.topVideo ?? campaign.topCreative
+        const im = campaign.topImage ?? campaign.topCreative
         return (
           <CampaignSlide
             key={slideKey}
@@ -65,12 +67,20 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
             ePeriod={ePeriod}
             eAnnotation={mkEdit(`${pfx}.annotation`, campaign.annotation)}
             eName={mkEdit(`${pfx}.name`, campaign.name)}
-            eCreativeImage={mkEdit(`${pfx}.creative.image`, '')}
-            eCreativeClicks={mkEdit(`${pfx}.creative.clicks`, String(campaign.topCreative?.clicks ?? 0))}
-            eCreativeLeads={mkEdit(`${pfx}.creative.leads`, String(campaign.topCreative?.leads ?? 0))}
-            eCreativeCpl={mkEdit(`${pfx}.creative.cpl`, campaign.topCreative ? `CPL R$ ${campaign.topCreative.cpl.toFixed(2)}` : '—')}
-            eCreativeImpressions={mkEdit(`${pfx}.creative.impressions`, String(campaign.topCreative?.impressions ?? 0))}
-            eCreativeCtr={mkEdit(`${pfx}.creative.ctr`, campaign.topCreative?.ctr ? `${campaign.topCreative.ctr.toFixed(2)}%` : '—')}
+            // Vídeo
+            eVideoImage={mkEdit(`${pfx}.video.image`, '')}
+            eVideoClicks={mkEdit(`${pfx}.video.clicks`, String(v?.clicks ?? 0))}
+            eVideoLeads={mkEdit(`${pfx}.video.leads`, String(v?.leads ?? 0))}
+            eVideoCpl={mkEdit(`${pfx}.video.cpl`, v ? `R$ ${v.cpl.toFixed(2)}` : '—')}
+            eVideoImpressions={mkEdit(`${pfx}.video.impressions`, String(v?.impressions ?? 0))}
+            eVideoCtr={mkEdit(`${pfx}.video.ctr`, v?.ctr ? `${v.ctr.toFixed(2)}%` : '—')}
+            // Estático
+            eImageImage={mkEdit(`${pfx}.static.image`, '')}
+            eImageClicks={mkEdit(`${pfx}.static.clicks`, String(im?.clicks ?? 0))}
+            eImageLeads={mkEdit(`${pfx}.static.leads`, String(im?.leads ?? 0))}
+            eImageCpl={mkEdit(`${pfx}.static.cpl`, im ? `R$ ${im.cpl.toFixed(2)}` : '—')}
+            eImageImpressions={mkEdit(`${pfx}.static.impressions`, String(im?.impressions ?? 0))}
+            eImageCtr={mkEdit(`${pfx}.static.ctr`, im?.ctr ? `${im.ctr.toFixed(2)}%` : '—')}
             eCreativeVisible={mkEdit(`vis.${pfx}.creative`, 'true')}
           />
         )
