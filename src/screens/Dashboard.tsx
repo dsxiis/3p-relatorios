@@ -347,11 +347,32 @@ function ClientCard({
           )}
           <div style={{ fontSize: 12, color: T.muted, marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span>{typeLabel}</span>
-            {!client.meta_account_id && (
-              <span title="Sem conta Meta Ads vinculada" style={{ color: 'var(--amber)', fontSize: 11 }}>⚠ Sem Meta</span>
-            )}
-            {client.meta_account_id && (
-              <span style={{ color: '#22c55e' }}>● Meta vinculado</span>
+            {client.type === 'franchise' ? (
+              // Franquia: mostra status agregado das unidades
+              (() => {
+                const total = client.total_units ?? 0
+                const linked = client.linked_units ?? 0
+                if (total === 0) {
+                  return <span style={{ color: 'var(--amber)', fontSize: 11 }}>⚠ Sem unidades</span>
+                }
+                if (linked === total) {
+                  return <span style={{ color: '#22c55e' }}>● {total} {total === 1 ? 'unidade' : 'unidades'} · todas com Meta</span>
+                }
+                if (linked === 0) {
+                  return <span style={{ color: 'var(--amber)', fontSize: 11 }}>⚠ {total} {total === 1 ? 'unidade' : 'unidades'} · sem Meta</span>
+                }
+                return <span style={{ color: 'var(--amber)', fontSize: 11 }}>⚠ {linked}/{total} unidades vinculadas</span>
+              })()
+            ) : (
+              // Lead Gen: status simples
+              <>
+                {!client.meta_account_id && (
+                  <span title="Sem conta Meta Ads vinculada" style={{ color: 'var(--amber)', fontSize: 11 }}>⚠ Sem Meta</span>
+                )}
+                {client.meta_account_id && (
+                  <span style={{ color: '#22c55e' }}>● Meta vinculado</span>
+                )}
+              </>
             )}
             {reportCount !== undefined && reportCount > 0 && (
               <span style={{

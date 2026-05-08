@@ -25,6 +25,9 @@ export interface Client {
   logo?: string | null
   color?: string
   created_at: string
+  // aggregated (only on list view, for franchise)
+  total_units?: number
+  linked_units?: number
   // hydrated
   reports?: Report[]
   units?: FranchiseUnit[]
