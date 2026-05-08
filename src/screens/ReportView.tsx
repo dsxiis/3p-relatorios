@@ -140,6 +140,42 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
     return base
   })
 
+  // Tela apropriada conforme status do relatório (evita fallback pra dados mock)
+  if (report && (report.status === 'error' || report.status === 'generating' || !report.raw_data)) {
+    const isGenerating = report.status === 'generating'
+    const isError = report.status === 'error'
+    const title = isGenerating ? 'Relatório ainda em geração' : isError ? 'Relatório com erro' : 'Relatório sem dados'
+    const message = isGenerating
+      ? 'O relatório ainda está sendo processado. Recarregue a página em alguns segundos.'
+      : (report.error_message || 'O relatório não tem dados disponíveis. Pode ter falhado durante a geração.')
+    const icon = isGenerating ? '⏳' : '⚠️'
+    return (
+      <div style={{ padding: '38px 42px', maxWidth: 720, animation: 'fadein 0.25s ease' }}>
+        <button onClick={() => onNavigate('client', client)} className="btn-ghost" style={{ marginBottom: 24, fontSize: 13 }}>
+          ← Voltar
+        </button>
+        <div style={{
+          background: isGenerating ? 'var(--amber-dim)' : '#ff6b6b18',
+          border: `1px solid ${isGenerating ? 'var(--amber)' : '#ff6b6b44'}`,
+          borderRadius: 12, padding: '32px 28px', textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>{icon}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{title}</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.5 }}>{message}</div>
+          {!isGenerating ? (
+            <button onClick={() => onNavigate('form', client)} className="btn-primary" style={{ fontSize: 13, padding: '10px 22px' }}>
+              Tentar gerar novamente →
+            </button>
+          ) : (
+            <button onClick={() => window.location.reload()} className="btn-primary" style={{ fontSize: 13, padding: '10px 22px' }}>
+              ↻ Recarregar
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   const template = getTemplateForClientType(client.type)
 
   // Resolve theme: from report (if worker saves it), then from per-report localStorage key, then default.
