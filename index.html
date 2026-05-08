@@ -49,7 +49,7 @@
       }
     </style>
     <script>
-      // ── EMBED DETECTION (executa ANTES do React pra evitar flash) ──
+      // ── EMBED DETECTION + LIVE THEME SYNC ──────────────────────────
       (function(){
         var params = new URLSearchParams(location.search);
         var isEmbed = params.get('embedded') === '1' || window.self !== window.top;
@@ -58,14 +58,71 @@
         if (theme === 'dark' || theme === 'light') {
           document.documentElement.setAttribute('data-theme', theme);
         }
+        // Listener: hub envia { type:'theme', theme:'dark'|'light' } via postMessage
+        window.addEventListener('message', function(ev){
+          var d = ev.data;
+          if (d && d.type === 'theme' && (d.theme === 'dark' || d.theme === 'light')) {
+            document.documentElement.setAttribute('data-theme', d.theme);
+          }
+        });
       })();
     </script>
     <style>
-      /* ── EMBED MODE — esconde chrome próprio, parece nativo do hub ── */
+      /* ── EMBED MODE ── header horizontal substitui sidebar ── */
       html.embedded body { background: transparent; }
       html.embedded .sidebar { display: none !important; }
-      html.embedded .app-layout { min-height: 100vh; }
-      html.embedded .main-content { padding-top: 4px; }
+      html.embedded .app-layout-embed {
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      html.embedded .main-content { padding-top: 0; }
+      /* Header */
+      html.embedded .embed-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        background: var(--bg);
+        border-bottom: 0.5px solid var(--border);
+        backdrop-filter: blur(8px);
+      }
+      html.embedded .embed-header-nav {
+        display: flex;
+        gap: 4px;
+        background: var(--surface2);
+        border: 0.5px solid var(--border);
+        border-radius: 10px;
+        padding: 4px;
+      }
+      html.embedded .embed-header-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 7px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      html.embedded .embed-header-tab:hover {
+        background: var(--surface);
+        color: var(--text);
+      }
+      html.embedded .embed-header-tab.active {
+        background: var(--brand);
+        color: #fff;
+      }
+      html.embedded .embed-header-tab-icon {
+        font-size: 13px;
+        line-height: 1;
+      }
     </style>
   </head>
   <body>

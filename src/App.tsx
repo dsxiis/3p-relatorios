@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { Screen, Client, Report } from './lib/types'
 import { apiClients, apiReports } from './lib/api'
 import { Sidebar } from './components/Sidebar'
+import { EmbedHeader } from './components/EmbedHeader'
 import { Toast } from './components/Toast'
 import { Dashboard } from './screens/Dashboard'
 import { ClientView } from './screens/ClientView'
@@ -110,21 +111,22 @@ export default function App() {
     )
   }
 
-  // Em embed: nunca mostra sidebar (hub já tem a sua)
-  const showSidebar = !IS_EMBEDDED && ['dashboard', 'client', 'form', 'templates', 'settings'].includes(screen)
+  // Embed: usa header horizontal compacto. Standalone: sidebar lateral.
+  const showNav = ['dashboard', 'client', 'form', 'templates', 'settings'].includes(screen)
+  const handleNavClick = (sc: Screen) => {
+    if (sc === 'dashboard') { setClient(null); setReport(null) }
+    setScreen(sc)
+    if (sc === 'dashboard') setHash('')
+    else setHash(sc)
+  }
 
   return (
-    <div className="app-layout">
-      {showSidebar && (
-        <Sidebar
-          screen={screen}
-          onNavigate={sc => {
-            if (sc === 'dashboard') { setClient(null); setReport(null) }
-            setScreen(sc)
-            if (sc === 'dashboard') setHash('')
-            else setHash(sc)
-          }}
-        />
+    <div className={`app-layout${IS_EMBEDDED ? ' app-layout-embed' : ''}`}>
+      {showNav && !IS_EMBEDDED && (
+        <Sidebar screen={screen} onNavigate={handleNavClick} />
+      )}
+      {showNav && IS_EMBEDDED && (
+        <EmbedHeader screen={screen} onNavigate={handleNavClick} />
       )}
 
       <main key={screen} className="main-content">
