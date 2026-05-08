@@ -27,7 +27,8 @@ interface CreativeSpotProps {
 }
 
 /**
- * Card with label strip + image (3:4 aspect) with metrics overlaid at the bottom via gradient.
+ * Card with label strip + prominent metrics panel + image (4:3 landscape).
+ * Metrics são o foco, imagem é menor.
  */
 export function CreativeSpot({
   label,
@@ -42,11 +43,14 @@ export function CreativeSpot({
   eCtr,
 }: CreativeSpotProps) {
   const t = useTheme()
-  const muted = dark ? t.darkSlideMuted : t.slideMuted
+  const text   = dark ? t.darkSlideText : t.slideText
+  const muted  = dark ? t.darkSlideMuted : t.slideMuted
+  const hint   = dark ? t.darkSlideMuted : t.slideHint
   const border = dark ? t.darkSlideBorder : t.slideBorder
   const bg     = dark ? t.darkSlideCardBg : t.slideCardBg
+  const surface = dark ? t.darkSlideCardBg : t.slideCardBg
 
-  // Accent colors for overlay metrics
+  // Accent colors
   const cplAccent = t.accent  // purple
   const leadAccent = '#34d399' // green
 
@@ -70,9 +74,94 @@ export function CreativeSpot({
         {label}
       </div>
 
-      {/* Image with overlaid metrics */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 4' }}>
-        {/* Image */}
+      {/* === METRICS PANEL (em destaque, em cima) === */}
+      {metrics && (
+        <div style={{
+          padding: '14px 14px 12px',
+          background: surface,
+          borderBottom: `1px solid ${border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}>
+          {/* Top row: Leads/Messages (focal) + CTR */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            {(metrics.leads !== undefined || metrics.messages !== undefined) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: hint,
+                  letterSpacing: '0.7px', textTransform: 'uppercase',
+                }}>
+                  {metrics.leads !== undefined ? 'Leads' : 'Mensagens'}
+                </span>
+                <span style={{ fontSize: 30, fontWeight: 800, color: leadAccent, lineHeight: 1, letterSpacing: '-0.5px' }}>
+                  {metrics.leads !== undefined
+                    ? (eLeads ? <EditableField e={eLeads} style={{ fontSize: 30, fontWeight: 800, color: leadAccent, letterSpacing: '-0.5px' }} /> : metrics.leads)
+                    : (eMessages ? <EditableField e={eMessages} style={{ fontSize: 30, fontWeight: 800, color: leadAccent, letterSpacing: '-0.5px' }} /> : metrics.messages)
+                  }
+                </span>
+              </div>
+            )}
+            {metrics.ctr !== undefined && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: hint,
+                  letterSpacing: '0.7px', textTransform: 'uppercase',
+                }}>CTR</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: text, lineHeight: 1, letterSpacing: '-0.3px' }}>
+                  {eCtr
+                    ? <EditableField e={eCtr} style={{ fontSize: 20, fontWeight: 800, color: text, letterSpacing: '-0.3px' }} />
+                    : `${metrics.ctr.toFixed(2)}%`
+                  }
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: border, opacity: 0.7 }} />
+
+          {/* Bottom row: Clicks · Impressões · CPL */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            {metrics.clicks !== undefined && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: 9, color: hint, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>Cliques</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: text, letterSpacing: '-0.2px' }}>
+                  {eClicks
+                    ? <EditableField e={eClicks} style={{ fontSize: 16, fontWeight: 800, color: text, letterSpacing: '-0.2px' }} />
+                    : metrics.clicks.toLocaleString('pt-BR')
+                  }
+                </span>
+              </div>
+            )}
+            {metrics.impressions !== undefined && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                <span style={{ fontSize: 9, color: hint, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>Impressões</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: text, letterSpacing: '-0.2px' }}>
+                  {eImpressions
+                    ? <EditableField e={eImpressions} style={{ fontSize: 16, fontWeight: 800, color: text, letterSpacing: '-0.2px' }} />
+                    : metrics.impressions.toLocaleString('pt-BR')
+                  }
+                </span>
+              </div>
+            )}
+            {metrics.cpl !== undefined && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
+                <span style={{ fontSize: 9, color: hint, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>CPL</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: cplAccent, letterSpacing: '-0.3px' }}>
+                  {eCpl
+                    ? <EditableField e={eCpl} style={{ fontSize: 18, fontWeight: 800, color: cplAccent, letterSpacing: '-0.3px' }} />
+                    : `R$ ${metrics.cpl.toFixed(2)}`
+                  }
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* === IMAGE (embaixo, menor — 4:3 landscape) === */}
+      <div style={{ width: '100%', aspectRatio: '4 / 3' }}>
         {eImage ? (
           <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
         ) : (
@@ -87,91 +176,6 @@ export function CreativeSpot({
             color: muted,
           }}>
             🖼
-          </div>
-        )}
-
-        {/* Gradient overlay + metrics (only if any metric is defined) */}
-        {metrics && (
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 60%, transparent 100%)',
-            padding: '28px 12px 12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 5,
-          }}>
-            {/* Top row: Leads/Messages + CTR */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {/* Leads or Messages — large focal metric */}
-              {(metrics.leads !== undefined || metrics.messages !== undefined) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                    {metrics.leads !== undefined ? 'Leads' : 'Mensagens'}
-                  </span>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: leadAccent, lineHeight: 1 }}>
-                    {metrics.leads !== undefined
-                      ? (eLeads ? <EditableField e={eLeads} style={{ fontSize: 22, fontWeight: 800, color: leadAccent }} /> : metrics.leads)
-                      : (eMessages ? <EditableField e={eMessages} style={{ fontSize: 22, fontWeight: 800, color: leadAccent }} /> : metrics.messages)
-                    }
-                  </span>
-                </div>
-              )}
-              {/* CTR */}
-              {metrics.ctr !== undefined && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>CTR</span>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
-                    {eCtr
-                      ? <EditableField e={eCtr} style={{ fontSize: 15, fontWeight: 700, color: '#fff' }} />
-                      : `${metrics.ctr.toFixed(2)}%`
-                    }
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Divider */}
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.15)', margin: '2px 0' }} />
-
-            {/* Bottom row: Clicks · Impressões · CPL */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {metrics.clicks !== undefined && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', fontWeight: 500, letterSpacing: '0.3px', textTransform: 'uppercase' }}>Cliques</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                    {eClicks
-                      ? <EditableField e={eClicks} style={{ fontSize: 13, fontWeight: 700, color: '#fff' }} />
-                      : metrics.clicks.toLocaleString('pt-BR')
-                    }
-                  </span>
-                </div>
-              )}
-              {metrics.impressions !== undefined && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', fontWeight: 500, letterSpacing: '0.3px', textTransform: 'uppercase' }}>Impressões</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                    {eImpressions
-                      ? <EditableField e={eImpressions} style={{ fontSize: 13, fontWeight: 700, color: '#fff' }} />
-                      : metrics.impressions.toLocaleString('pt-BR')
-                    }
-                  </span>
-                </div>
-              )}
-              {metrics.cpl !== undefined && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', fontWeight: 500, letterSpacing: '0.3px', textTransform: 'uppercase' }}>CPL</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: cplAccent }}>
-                    {eCpl
-                      ? <EditableField e={eCpl} style={{ fontSize: 14, fontWeight: 800, color: cplAccent }} />
-                      : `R$ ${metrics.cpl.toFixed(2)}`
-                    }
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </div>
