@@ -81,4 +81,5 @@ export const apiAuth = {
   metaStart: () => request<{ url: string }>('/api/auth/meta/start', { method: 'POST' }),
   metaStatus: () => request<MetaOAuthStatus>('/api/auth/meta/status'),
   metaDisconnect: () => request<{ ok: boolean }>('/api/auth/meta/disconnect', { method: 'POST' }),
+  metaRefresh: () => request<{ ok: boolean; expires_at: string; days_left: number }>('/api/auth/meta/refresh', { method: 'POST' }),
 }

@@ -86,6 +86,32 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
     }
   }
 
+  const handleRefreshToken = async () => {
+    setOauthBusy(true)
+    try {
+      const result = await apiAuth.metaRefresh()
+      showToast(`✓ Token renovado · ${result.days_left} dias`)
+      const fresh = await apiAuth.metaStatus()
+      setOauth(fresh)
+    } catch (e: any) {
+      showToast(`Erro ao renovar: ${e?.message || 'tente reconectar'}`)
+    } finally {
+      setOauthBusy(false)
+    }
+  }
+
+  const handleRecheck = async () => {
+    setOauthBusy(true)
+    try {
+      const fresh = await apiAuth.metaStatus()
+      setOauth(fresh)
+      if (fresh.healthy) showToast('✓ Conexão funcionando')
+      else showToast(`Erro: ${fresh.health_error || 'token inválido'}`)
+    } finally {
+      setOauthBusy(false)
+    }
+  }
+
   const handleSaveAndTest = async () => {
     const token = tokenInput.trim()
     if (token.length < 30) {
@@ -141,12 +167,15 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
           <div style={{ color: T.hint, fontSize: 13 }}>Carregando...</div>
         ) : oauth?.connected ? (
           <div>
+            {/* Health status banner */}
+            <HealthBanner status={oauth} onRecheck={handleRecheck} busy={oauthBusy} />
+
             {/* Connected card */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 16px',
-              background: 'var(--green-dim)',
-              border: '1px solid var(--green-border)',
+              background: oauth.healthy ? 'var(--green-dim)' : '#ff6b6b18',
+              border: `1px solid ${oauth.healthy ? 'var(--green-border)' : '#ff6b6b44'}`,
               borderRadius: 10,
               marginBottom: 12,
             }}>
@@ -203,24 +232,37 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
               </button>
             </div>
 
-            {(oauth.days_left ?? 60) < 7 && (
+            {/* Renew button — sempre disponível enquanto saudável */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <button
+                onClick={handleRefreshToken}
+                disabled={oauthBusy || !oauth.healthy}
+                className="btn-ghost"
+                style={{ fontSize: 12, padding: '7px 14px', fontWeight: 600 }}
+                title="Estende a validade do token por mais 60 dias"
+              >
+                ↻ Renovar token (+60 dias)
+              </button>
+              {(oauth.days_left ?? 60) < 14 && (
+                <span style={{
+                  fontSize: 11, color: 'var(--amber)', fontWeight: 600,
+                  display: 'flex', alignItems: 'center',
+                }}>
+                  ⚠ Renove ou reconecte antes de expirar
+                </span>
+              )}
+            </div>
+
+            {!oauth.healthy && oauth.health_error && (
               <div style={{
-                background: 'var(--amber-dim)', border: '1px solid var(--amber)',
-                borderRadius: 8, padding: '10px 14px', fontSize: 12, color: T.text,
+                background: '#ff6b6b18', border: '1px solid #ff6b6b44',
+                borderRadius: 8, padding: '10px 14px', fontSize: 12,
+                color: '#ef4444', marginBottom: 10,
               }}>
-                ⚠ Token expira em breve. Clique em <b>Reconectar</b> abaixo para renovar por mais 60 dias.
-                <button
-                  onClick={handleConnectFacebook}
-                  disabled={oauthBusy}
-                  style={{
-                    marginLeft: 10,
-                    background: '#1877F2', color: '#fff', border: 'none',
-                    borderRadius: 6, padding: '5px 12px', fontSize: 11, fontWeight: 700,
-                    cursor: oauthBusy ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  Reconectar
-                </button>
+                <b>Erro ao validar token:</b> {oauth.health_error}
+                <div style={{ marginTop: 6, color: T.muted, fontWeight: 400 }}>
+                  Tente <button onClick={handleConnectFacebook} disabled={oauthBusy} style={{ background: 'none', border: 'none', color: T.brand, cursor: 'pointer', textDecoration: 'underline', padding: 0, fontSize: 12 }}>reconectar</button> com sua conta Facebook.
+                </div>
               </div>
             )}
 
@@ -463,6 +505,94 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
       </Section>
     </div>
   )
+}
+
+/* ── HealthBanner ─────────────────────────────────────── */
+function HealthBanner({
+  status,
+  onRecheck,
+  busy,
+}: {
+  status: MetaOAuthStatus
+  onRecheck: () => void
+  busy: boolean
+}) {
+  const days = status.days_left ?? 60
+  const lastCheck = status.last_check ? new Date(status.last_check) : null
+  const lastCheckLabel = lastCheck ? timeAgo(lastCheck) : null
+
+  let kind: 'ok' | 'warning' | 'error' = 'ok'
+  let label = ''
+  let detail = ''
+  let icon = '✓'
+
+  if (!status.healthy) {
+    kind = 'error'
+    icon = '✗'
+    label = 'Conexão com erro'
+    detail = status.health_error || 'Token inválido — reconecte sua conta'
+  } else if (days < 7) {
+    kind = 'warning'
+    icon = '⚠'
+    label = `Conectado · expira em ${days} dia${days === 1 ? '' : 's'}`
+    detail = 'Renove o token agora para evitar interrupção'
+  } else if (days < 14) {
+    kind = 'warning'
+    icon = '✓'
+    label = `Conectado · expira em ${days} dias`
+    detail = 'Considere renovar antes de expirar'
+  } else {
+    kind = 'ok'
+    icon = '✓'
+    label = `Conectado e funcionando`
+    detail = `Token válido por mais ${days} dias`
+  }
+
+  const colors = {
+    ok: { bg: 'var(--green-dim)', border: 'var(--green-border)', fg: 'var(--green)' },
+    warning: { bg: 'var(--amber-dim)', border: 'var(--amber)', fg: 'var(--amber)' },
+    error: { bg: '#ff6b6b18', border: '#ff6b6b44', fg: '#ef4444' },
+  }[kind]
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12,
+      background: colors.bg, border: `1px solid ${colors.border}`,
+      borderRadius: 10, padding: '10px 14px', marginBottom: 12,
+    }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%',
+        background: colors.fg, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 14, fontWeight: 800, flexShrink: 0,
+      }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{label}</div>
+        <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>
+          {detail}
+          {lastCheckLabel && <span style={{ color: T.hint, marginLeft: 8 }}>· verificado {lastCheckLabel}</span>}
+        </div>
+      </div>
+      <button
+        onClick={onRecheck}
+        disabled={busy}
+        className="btn-ghost"
+        style={{ fontSize: 11, padding: '5px 10px', whiteSpace: 'nowrap' }}
+        title="Verificar agora"
+      >
+        ↻ Testar
+      </button>
+    </div>
+  )
+}
+
+function timeAgo(d: Date): string {
+  const sec = Math.floor((Date.now() - d.getTime()) / 1000)
+  if (sec < 5) return 'agora'
+  if (sec < 60) return `${sec}s atrás`
+  if (sec < 3600) return `${Math.floor(sec / 60)}min atrás`
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h atrás`
+  return d.toLocaleDateString('pt-BR')
 }
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {

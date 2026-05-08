@@ -184,6 +184,9 @@ export interface MetaTokenInfo {
 export interface MetaOAuthStatus {
   connected: boolean
   expired?: boolean
+  healthy?: boolean
+  health_error?: string | null
+  last_check?: string | null
   user_id?: string
   user_name?: string
   user_email?: string | null
