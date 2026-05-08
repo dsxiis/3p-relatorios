@@ -22,6 +22,14 @@ function setHash(path: string) {
   history.replaceState(null, '', `#/${path}`)
 }
 
+// Detecta se está embedado (dentro de iframe / hub)
+const IS_EMBEDDED = (() => {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('embedded') === '1') return true
+  try { return window.self !== window.top } catch { return true }
+})()
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [client, setClient] = useState<Client | null>(null)
@@ -102,7 +110,8 @@ export default function App() {
     )
   }
 
-  const showSidebar = ['dashboard', 'client', 'form', 'templates', 'settings'].includes(screen)
+  // Em embed: nunca mostra sidebar (hub já tem a sua)
+  const showSidebar = !IS_EMBEDDED && ['dashboard', 'client', 'form', 'templates', 'settings'].includes(screen)
 
   return (
     <div className="app-layout">

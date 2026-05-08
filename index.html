@@ -48,6 +48,25 @@
         --amber-dim: rgba(217,119,6,0.08);
       }
     </style>
+    <script>
+      // ── EMBED DETECTION (executa ANTES do React pra evitar flash) ──
+      (function(){
+        var params = new URLSearchParams(location.search);
+        var isEmbed = params.get('embedded') === '1' || window.self !== window.top;
+        if (isEmbed) document.documentElement.classList.add('embedded');
+        var theme = params.get('theme');
+        if (theme === 'dark' || theme === 'light') {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      })();
+    </script>
+    <style>
+      /* ── EMBED MODE — esconde chrome próprio, parece nativo do hub ── */
+      html.embedded body { background: transparent; }
+      html.embedded .sidebar { display: none !important; }
+      html.embedded .app-layout { min-height: 100vh; }
+      html.embedded .main-content { padding-top: 4px; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
