@@ -111,12 +111,12 @@ export function EditableImage({
               src={e.value}
               alt="criativo"
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                objectPosition: 'center',
+                maxWidth: '100%',
+                maxHeight: '100%',
+                width: 'auto',
+                height: 'auto',
                 display: 'block',
-                background: bg,
+                margin: '0 auto',
               }}
             />
             {/* Overlay on hover */}
