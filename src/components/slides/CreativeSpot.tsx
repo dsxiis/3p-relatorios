@@ -160,24 +160,29 @@ export function CreativeSpot({
         </div>
       )}
 
-      {/* === IMAGE — altura FIXA, contain (mostra imagem inteira sem recorte) === */}
+      {/* === IMAGE — largura 100%, altura proporcional, max-height pra não estourar === */}
       <div style={{
         width: '100%',
-        height: 170,
-        position: 'relative',
+        maxHeight: 280,
+        overflow: 'hidden',
         background: dark ? t.darkSlideCardBg : '#f9fafb',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        // Garante altura mínima quando não tem imagem
+        minHeight: eImage?.value ? undefined : 140,
       }}>
         {eImage ? (
-          <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
+          <EditableImage e={eImage} dark={dark} width="100%" height="auto" />
         ) : (
           <div style={{
             width: '100%',
-            height: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: 28,
             color: muted,
+            padding: '24px 0',
           }}>
             🖼
           </div>

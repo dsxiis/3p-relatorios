@@ -81,8 +81,9 @@ export function EditableImage({
         onDrop={handleDrop}
         title={hasImage ? 'Clique para trocar imagem' : 'Clique ou arraste para adicionar imagem'}
         style={{
-          width, height,
-          borderRadius: 8,
+          width,
+          height: hasImage ? 'auto' : height,    // altura natural quando tem imagem
+          borderRadius: hasImage ? 0 : 8,
           border: `1.5px dashed ${hasImage ? 'transparent' : border}`,
           background: hasImage ? 'transparent' : bg,
           cursor: 'pointer',
@@ -111,12 +112,9 @@ export function EditableImage({
               src={e.value}
               alt="criativo"
               style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                width: 'auto',
+                width: '100%',
                 height: 'auto',
                 display: 'block',
-                margin: '0 auto',
               }}
             />
             {/* Overlay on hover */}
