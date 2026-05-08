@@ -82,6 +82,7 @@ export const franquiaConfig: TemplateConfig<FranchiseData> = {
         franchiseHistory={data.franchiseHistory}
         ePeriod={ePeriod}
         eHistory={mkEdit('franchise.history', data.franchiseHistory.join('\n'))}
+        eFranqueadoraVisible={mkEdit('vis.franqueadora', 'true')}
       />,
     ]
   },

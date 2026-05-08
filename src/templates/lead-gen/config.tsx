@@ -98,6 +98,7 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
         todosClient={data.todosClient}
         e3P={mkEdit('todos.3p', data.todos3P.join('\n'))}
         eClient={mkEdit('todos.client', data.todosClient.join('\n'))}
+        eTodoVisible={mkEdit('vis.todo', 'true')}
       />,
     ]
   },

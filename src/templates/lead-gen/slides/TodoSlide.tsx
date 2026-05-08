@@ -9,18 +9,44 @@ interface TodoSlideProps {
   todosClient: string[]
   e3P: EditState
   eClient: EditState
+  eTodoVisible: EditState
 }
 
-export function TodoSlide({ clientName, todos3P, todosClient, e3P, eClient }: TodoSlideProps) {
-  // Unused props kept for API compatibility — EditableText handles display via defaultValue
+export function TodoSlide({ clientName, todos3P, todosClient, e3P, eClient, eTodoVisible }: TodoSlideProps) {
   void todos3P
   void todosClient
+
+  if (eTodoVisible.value === 'false') return null
 
   return (
     <SlideShell>
       <SlideLogo clientName={clientName} position="top-right" />
-      <div style={{ fontSize: 11, color: '#8833ff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 16 }}>
-        To Do — Próximo Mês
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: '#8833ff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+          To Do — Próximo Mês
+        </div>
+        <button
+          data-editor-only="true"
+          onClick={() => {
+            if (confirm('Remover o slide de To Do do relatório? Você pode restaurar depois.')) {
+              eTodoVisible.change('false')
+              eTodoVisible.save('false')
+            }
+          }}
+          style={{
+            position: 'absolute', top: -4, right: 0, zIndex: 5,
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'none', border: '0.5px solid #999',
+            borderRadius: 6, padding: '4px 10px',
+            fontSize: 11, color: '#999', cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b'; e.currentTarget.style.borderColor = '#ff6b6b'; e.currentTarget.style.background = 'rgba(255,107,107,0.06)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#999'; e.currentTarget.style.borderColor = '#999'; e.currentTarget.style.background = 'none' }}
+          title="Remover slide de To Do"
+        >
+          × Remover slide
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>

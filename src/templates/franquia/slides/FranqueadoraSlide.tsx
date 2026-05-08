@@ -11,13 +11,41 @@ interface FranqueadoraSlideProps {
   franchiseHistory: string[]
   ePeriod: EditState
   eHistory: EditState
+  eFranqueadoraVisible: EditState
 }
 
-export function FranqueadoraSlide({ clientName, clientLogo, franchiseHistory, ePeriod, eHistory }: FranqueadoraSlideProps) {
+export function FranqueadoraSlide({ clientName, clientLogo, franchiseHistory, ePeriod, eHistory, eFranqueadoraVisible }: FranqueadoraSlideProps) {
   const t = useTheme()
+
+  if (eFranqueadoraVisible.value === 'false') return null
+
   return (
     <SlideShell dark style={{ background: t.darkSlideBg }}>
       <SlideLogo clientName={clientName} clientLogo={clientLogo} dark position="top-right" />
+
+      {/* Botão remover slide */}
+      <button
+        data-editor-only="true"
+        onClick={() => {
+          if (confirm('Remover o slide de Histórico de Otimizações? Você pode restaurar depois.')) {
+            eFranqueadoraVisible.change('false')
+            eFranqueadoraVisible.save('false')
+          }
+        }}
+        style={{
+          position: 'absolute', top: 16, left: 16, zIndex: 5,
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          background: 'none', border: `0.5px solid ${t.darkSlideBorder}`,
+          borderRadius: 6, padding: '4px 10px',
+          fontSize: 11, color: t.darkSlideMuted, cursor: 'pointer',
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b'; e.currentTarget.style.borderColor = '#ff6b6b'; e.currentTarget.style.background = 'rgba(255,107,107,0.1)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = t.darkSlideMuted; e.currentTarget.style.borderColor = t.darkSlideBorder; e.currentTarget.style.background = 'none' }}
+        title="Remover slide de Histórico"
+      >
+        × Remover slide
+      </button>
 
       {/* Section header — dark slide, always use accent green + rule style */}
       <div style={{

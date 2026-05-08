@@ -271,8 +271,16 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
   const allSlides = template.renderSlides(data as any, mkEdit, client.logo)
   // Filtra slides ocultos (CampaignSlide/UnitSlide retornam null quando o usuário oculta a campanha/unidade)
   const slides = allSlides.filter(s => s !== null && s !== undefined)
-  // Conta quantas campanhas/unidades estão ocultas pra exibir botão de restaurar
-  const hiddenKeys = Object.keys(edits).filter(k => /^vis\.(campaign|unit)\.\d+\.(campaign|unit)$/.test(k) && edits[k] === 'false')
+  // Conta quantos slides foram ocultados pra exibir botão de restaurar.
+  // Cobre: campanhas (vis.campaign.N.campaign), unidades (vis.unit.N.unit),
+  // todo (vis.todo) e franqueadora (vis.franqueadora)
+  const hiddenKeys = Object.keys(edits).filter(k =>
+    edits[k] === 'false' && (
+      /^vis\.(campaign|unit)\.\d+\.(campaign|unit)$/.test(k)
+      || k === 'vis.todo'
+      || k === 'vis.franqueadora'
+    )
+  )
   const hasHidden = hiddenKeys.length > 0
   const restoreAllHidden = () => {
     if (!confirm(`Restaurar ${hiddenKeys.length} ${hiddenKeys.length === 1 ? 'item oculto' : 'itens ocultos'}?`)) return
