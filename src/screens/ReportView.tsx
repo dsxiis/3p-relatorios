@@ -158,7 +158,7 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
       : (report.error_message || 'O relatório não tem dados disponíveis. Pode ter falhado durante a geração.')
     const icon = isGenerating ? '⏳' : '⚠️'
     return (
-      <div style={{ padding: '38px 42px', maxWidth: 720, animation: 'fadein 0.25s ease' }}>
+      <div className="screen-root" style={{ maxWidth: 720, animation: 'fadein 0.25s ease' }}>
         <button onClick={() => onNavigate('client', client)} className="btn-ghost" style={{ marginBottom: 24, fontSize: 13 }}>
           ← Voltar
         </button>

@@ -190,6 +190,18 @@ html.embedded .screen-root {
   }
 }
 
+/* ── EMBED COMPACT MODE ──────────────────────────────────
+   Quando dentro do hub, escala global em 85% pra ficar com
+   densidade de informação maior, parecido com Chrome 85%.
+   Aplica em body pra não afetar sticky positioning. */
+html.embedded body {
+  zoom: 0.85;
+}
+/* Compensação: reduz padding mais ainda já que o zoom já encolhe */
+html.embedded .screen-root {
+  padding: 20px 22px;
+}
+
 /* ── DASHBOARD GRIDS (responsivos) ──────────────────────── */
 .stats-row {
   display: grid;
