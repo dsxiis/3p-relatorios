@@ -1,4 +1,4 @@
-import type { Client, Report, MetaAdAccount, MetaCampaignInsight, GenerateReportPayload, DashboardStats } from './types'
+import type { Client, Report, MetaAdAccount, MetaCampaignInsight, GenerateReportPayload, DashboardStats, AppSettings, MetaAccountsGrouped } from './types'
 
 const WORKER_BASE = import.meta.env.VITE_WORKER_URL ?? 'http://localhost:8787'
 const API_KEY = import.meta.env.VITE_API_KEY ?? ''
@@ -57,8 +57,21 @@ export const apiStats = {
 /* ── META ─────────────────────────────────────────────── */
 export const apiMeta = {
   accounts: () => request<MetaAdAccount[]>('/api/meta/accounts'),
+  businesses: () => request<MetaAccountsGrouped>('/api/meta/businesses'),
+  verifyAccount: (id: string) =>
+    request<MetaAdAccount>(`/api/meta/account/${encodeURIComponent(id)}/verify`),
   insights: (accountId: string, start: string, end: string) =>
     request<MetaCampaignInsight[]>(
       `/api/meta/insights?account_id=${accountId}&start=${start}&end=${end}`
     ),
+}
+
+/* ── SETTINGS ─────────────────────────────────────────── */
+export const apiSettings = {
+  get: () => request<AppSettings>('/api/settings'),
+  updateMetaToken: (meta_token: string) =>
+    request<AppSettings>('/api/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ meta_token }),
+    }),
 }

@@ -20,14 +20,14 @@ export function RecentActivity({ reports, loading, onNavigateToClient }: RecentA
       background: T.surface,
       border: `0.5px solid ${T.border}`,
       borderRadius: 14,
-      padding: '20px',
+      padding: '16px 18px',
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
     }}>
       <div style={{
         fontSize: 10, fontWeight: 700, color: T.hint,
-        letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 14,
+        letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 8,
       }}>
         Atividade recente
       </div>
@@ -48,7 +48,7 @@ export function RecentActivity({ reports, loading, onNavigateToClient }: RecentA
           <span style={{ fontSize: 13, color: T.hint }}>Nenhum relatório ainda</span>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
           {reports.map((r, i) => {
             const st = STATUS[r.status] ?? STATUS.generating
             const color = r.client_color || '#8B35E8'
@@ -58,7 +58,7 @@ export function RecentActivity({ reports, loading, onNavigateToClient }: RecentA
                 onClick={() => onNavigateToClient(r.client_id)}
                 style={{
                   background: 'none', border: 'none',
-                  borderRadius: 8, padding: '9px 8px',
+                  borderRadius: 8, padding: '6px 6px',
                   cursor: 'pointer', textAlign: 'left',
                   display: 'flex', alignItems: 'center', gap: 10,
                   transition: 'background 0.1s',

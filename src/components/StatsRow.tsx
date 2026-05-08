@@ -14,7 +14,7 @@ export function StatsRow({ stats, loading }: StatsRowProps) {
   ]
 
   return (
-    <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+    <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
       {items.map(({ label, value }) => (
         <div
           key={label}
@@ -23,31 +23,34 @@ export function StatsRow({ stats, loading }: StatsRowProps) {
             background: T.surface,
             border: `0.5px solid ${T.border}`,
             borderRadius: 12,
-            padding: '16px 20px',
+            padding: '12px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
           }}
         >
-          <div style={{
-            fontSize: 10, fontWeight: 700, color: T.hint,
-            letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 8,
-          }}>
-            {label}
-          </div>
-          {loading || value === undefined ? (
+          <div>
             <div style={{
-              height: 36, width: 60,
-              background: T.surface,
-              borderRadius: 6,
-              animation: 'pulse 1.4s ease-in-out infinite',
-            }} />
-          ) : (
-            <div style={{
-              fontSize: 34, fontWeight: 800, color: T.text,
-              letterSpacing: '-1px', lineHeight: 1,
-              animation: 'fadein 0.4s ease',
+              fontSize: 10, fontWeight: 700, color: T.hint,
+              letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4,
             }}>
-              {value}
+              {label}
             </div>
-          )}
+            {loading || value === undefined ? (
+              <div style={{
+                height: 26, width: 48,
+                background: 'var(--surface2)',
+                borderRadius: 6,
+                animation: 'pulse 1.4s ease-in-out infinite',
+              }} />
+            ) : (
+              <div style={{
+                fontSize: 26, fontWeight: 800, color: T.text,
+                letterSpacing: '-0.5px', lineHeight: 1,
+                animation: 'fadein 0.4s ease',
+              }}>
+                {value}
+              </div>
+            )}
+          </div>
         </div>
       ))}
     </div>

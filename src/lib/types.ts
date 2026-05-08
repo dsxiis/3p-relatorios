@@ -174,8 +174,28 @@ export interface DashboardStats {
   per_client_counts: ClientReportCount[]
 }
 
+/* ── SETTINGS / META GROUPED ──────────────────────────── */
+export interface MetaTokenInfo {
+  set: boolean
+  source: 'db' | 'env' | null
+  preview: string | null
+  updated_at: string | null
+}
+export interface AppSettings {
+  meta_token: MetaTokenInfo
+}
+export interface BusinessGroup {
+  id: string
+  name: string
+  accounts: MetaAdAccount[]
+}
+export interface MetaAccountsGrouped {
+  direct_accounts: MetaAdAccount[]
+  businesses: BusinessGroup[]
+}
+
 /* ── APP STATE ────────────────────────────────────────── */
-export type Screen = 'dashboard' | 'client' | 'form' | 'generating' | 'report' | 'templates'
+export type Screen = 'dashboard' | 'client' | 'form' | 'generating' | 'report' | 'templates' | 'settings'
 
 export interface EditState {
   id: string

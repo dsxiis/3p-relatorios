@@ -77,7 +77,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
   const hasChartData = !statsLoading && (stats?.monthly_counts?.length ?? 0) > 0
 
   return (
-    <div style={{ padding: '40px 44px', maxWidth: 760, animation: 'fadein 0.25s ease' }}>
+    <div style={{ padding: '40px 44px', animation: 'fadein 0.25s ease' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
@@ -102,14 +102,14 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
 
       {/* Chart + Activity row */}
       {(hasChartData || statsLoading || (stats && stats.recent_reports.length > 0)) && (
-        <div style={{ display: 'flex', gap: 14, marginBottom: 28, alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', gap: 14, marginBottom: 20, alignItems: 'stretch' }}>
           {/* Bar chart */}
           {(hasChartData || statsLoading) && (
-            <div style={{ flex: 2 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               {statsLoading ? (
                 <div style={{
                   background: T.surface, border: `0.5px solid ${T.border}`,
-                  borderRadius: 14, height: 200,
+                  borderRadius: 14, height: 220,
                   animation: 'pulse 1.4s ease-in-out infinite',
                 }} />
               ) : stats?.monthly_counts && stats.monthly_counts.length > 0 ? (
@@ -119,7 +119,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
           )}
 
           {/* Recent activity */}
-          <div style={{ flex: 1.3 }}>
+          <div style={{ flex: 2, minWidth: 0 }}>
             <RecentActivity
               reports={stats?.recent_reports ?? []}
               loading={statsLoading}
@@ -146,7 +146,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
       ) : clients.length === 0 ? (
         <EmptyState onAdd={() => setShowModal(true)} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
           {clients.map((c, i) => {
             const perClient = stats?.per_client_counts?.find(x => x.client_id === c.id)
             return (

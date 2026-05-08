@@ -9,6 +9,7 @@ import { FormView } from './screens/FormView'
 import { GeneratingView } from './screens/GeneratingView'
 import { ReportView } from './screens/ReportView'
 import { TemplatesScreen } from './screens/TemplatesScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import './styles/global.css'
 
 function parseHash() {
@@ -54,6 +55,10 @@ export default function App() {
           setReport(r)
           setClient(c)
           setScreen('report')
+        } else if (route === 'templates') {
+          setScreen('templates')
+        } else if (route === 'settings') {
+          setScreen('settings')
         }
       } catch {
         setHash('')
@@ -74,6 +79,7 @@ export default function App() {
     else if (sc === 'client' && c) setHash(`client/${c.id}`)
     else if (sc === 'form' && c) setHash(`form/${c.id}`)
     else if (sc === 'templates') setHash('templates')
+    else if (sc === 'settings') setHash('settings')
   }
 
   const startGeneration = (id: string) => {
@@ -96,7 +102,7 @@ export default function App() {
     )
   }
 
-  const showSidebar = ['dashboard', 'client', 'form', 'templates'].includes(screen)
+  const showSidebar = ['dashboard', 'client', 'form', 'templates', 'settings'].includes(screen)
 
   return (
     <div className="app-layout">
@@ -119,6 +125,10 @@ export default function App() {
 
         {screen === 'templates' && (
           <TemplatesScreen onBack={() => navigate('dashboard')} />
+        )}
+
+        {screen === 'settings' && (
+          <SettingsScreen showToast={showToast} />
         )}
 
         {screen === 'client' && client && (

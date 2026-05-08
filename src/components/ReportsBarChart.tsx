@@ -49,14 +49,15 @@ export function ReportsBarChart({ months }: ReportsBarChartProps) {
       background: T.surface,
       border: `0.5px solid ${T.border}`,
       borderRadius: 14,
-      padding: '20px 20px 12px',
+      padding: '16px 18px 12px',
       height: '100%',
+      minHeight: 220,
       display: 'flex',
       flexDirection: 'column',
     }}>
       <div style={{
         fontSize: 10, fontWeight: 700, color: T.hint,
-        letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 12,
+        letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 8,
       }}>
         Relatórios por mês
       </div>
