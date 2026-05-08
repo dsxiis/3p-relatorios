@@ -160,15 +160,19 @@ export function CreativeSpot({
         </div>
       )}
 
-      {/* === IMAGE — altura FIXA pra não adaptar com tamanho da imagem === */}
-      <div style={{ width: '100%', height: 200, position: 'relative' }}>
+      {/* === IMAGE — altura FIXA, contain (mostra imagem inteira sem recorte) === */}
+      <div style={{
+        width: '100%',
+        height: 240,
+        position: 'relative',
+        background: dark ? t.darkSlideCardBg : '#f9fafb',
+      }}>
         {eImage ? (
           <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
         ) : (
           <div style={{
             width: '100%',
             height: '100%',
-            background: dark ? t.darkSlideCardBg : '#f3f4f6',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

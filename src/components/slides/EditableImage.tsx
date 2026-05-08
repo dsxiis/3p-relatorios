@@ -110,7 +110,13 @@ export function EditableImage({
             <img
               src={e.value}
               alt="criativo"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',  // mostra a imagem inteira sem recortar
+                display: 'block',
+                background: bg,         // letterbox combina com tema
+              }}
             />
             {/* Overlay on hover */}
             <div style={{
