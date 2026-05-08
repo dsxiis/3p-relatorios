@@ -5,6 +5,7 @@ import { apiReports } from '../lib/api'
 import { getTemplateForClientType } from '../templates/index'
 import { MOCK_RIZON, MOCK_FOLKS } from '../lib/mockData'
 import { SlideThemeProvider } from '../lib/themeContext'
+import { ALL_THEMES } from '../lib/themes'
 
 interface ReportViewProps {
   client: Client
@@ -180,11 +181,18 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
 
   // Resolve theme: from report (if worker saves it), then from per-report localStorage key, then default.
   // NOTE: intentionally NOT using a per-client fallback — that was causing themes to leak across reports.
-  const themeId = report?.template_id
+  const initialThemeId = report?.template_id
     ?? (() => {
       try { return localStorage.getItem(`report-template-${reportKey}`) } catch { return null }
     })()
     ?? 'dark-premium'
+  const [themeId, setThemeId] = useState(initialThemeId)
+  const [themePickerOpen, setThemePickerOpen] = useState(false)
+  const handleThemeChange = (newId: string) => {
+    setThemeId(newId)
+    setThemePickerOpen(false)
+    try { localStorage.setItem(`report-template-${reportKey}`, newId) } catch { /* ignore */ }
+  }
 
   // Resolve data: real raw_data from report, or mock fallback for dev/preview
   const data = report?.raw_data ?? (
@@ -258,7 +266,71 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 7 }}>
+        <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+          {/* Theme picker */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setThemePickerOpen(o => !o)}
+              className="btn-ghost"
+              style={{ fontSize: 12, padding: '7px 12px' }}
+              title="Trocar tema"
+            >
+              🎨 {ALL_THEMES.find(t => t.id === themeId)?.name ?? 'Tema'}
+            </button>
+            {themePickerOpen && (
+              <>
+                {/* backdrop pra fechar ao clicar fora */}
+                <div
+                  onClick={() => setThemePickerOpen(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: 100 }}
+                />
+                <div style={{
+                  position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 101,
+                  background: T.surface, border: `1px solid ${T.border}`,
+                  borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                  minWidth: 220, maxHeight: 360, overflowY: 'auto',
+                }}>
+                  <div style={{
+                    padding: '10px 14px', borderBottom: `1px solid ${T.border}`,
+                    fontSize: 11, fontWeight: 700, color: T.hint, textTransform: 'uppercase', letterSpacing: '0.7px',
+                  }}>
+                    Trocar tema
+                  </div>
+                  {ALL_THEMES.map(theme => (
+                    <button
+                      key={theme.id}
+                      onClick={() => handleThemeChange(theme.id)}
+                      style={{
+                        width: '100%', background: themeId === theme.id ? `${T.brand}15` : 'none',
+                        border: 'none', textAlign: 'left',
+                        padding: '10px 14px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        borderLeft: `3px solid ${themeId === theme.id ? T.brand : 'transparent'}`,
+                      }}
+                      onMouseEnter={e => { if (themeId !== theme.id) e.currentTarget.style.background = 'var(--surface2)' }}
+                      onMouseLeave={e => { if (themeId !== theme.id) e.currentTarget.style.background = 'none' }}
+                    >
+                      <div style={{
+                        width: 28, height: 20, borderRadius: 4,
+                        background: theme.coverBg ?? `linear-gradient(135deg,${theme.accent},${theme.accent}88)`,
+                        border: `1px solid ${T.border}`, flexShrink: 0,
+                      }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{theme.name}</div>
+                        {theme.description && (
+                          <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{theme.description}</div>
+                        )}
+                      </div>
+                      {themeId === theme.id && (
+                        <div style={{ color: T.brand, fontSize: 14, fontWeight: 700 }}>✓</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
           <button className="btn-ghost" onClick={() => showToast('Compartilhamento disponível em breve')}>
             Compartilhar
           </button>

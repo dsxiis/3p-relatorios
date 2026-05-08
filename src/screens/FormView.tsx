@@ -55,7 +55,7 @@ function buildPresets(): Preset[] {
     { label: 'Últimos 7 dias',   short: '7d',    start: fmt(daysAgo(7)),         end: fmt(today()) },
     { label: 'Últimos 14 dias',  short: '14d',   start: fmt(daysAgo(14)),        end: fmt(today()) },
     { label: 'Últimos 30 dias',  short: '30d',   start: fmt(daysAgo(30)),        end: fmt(today()) },
-    { label: 'Este mês',         short: 'Mês',   start: fmt(startOfMonth(0)),    end: fmt(today()) },
+    { label: monthFull(0),       short: 'Mês',   start: fmt(startOfMonth(0)),    end: fmt(today()) },
     { label: monthFull(-1),      short: monthLabel(-1), start: fmt(startOfMonth(-1)), end: fmt(endOfMonth(-1)) },
     { label: monthFull(-2),      short: monthLabel(-2), start: fmt(startOfMonth(-2)), end: fmt(endOfMonth(-2)) },
     { label: 'Últimos 90 dias',  short: '90d',   start: fmt(daysAgo(90)),        end: fmt(today()) },
@@ -186,61 +186,6 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
         {isFranchise ? 'Franquia' : 'Lead Gen'} · Preencha as opções abaixo e clique em gerar.
       </p>
 
-      {/* ── Período ── */}
-      <Section label="Período">
-        {/* Button group — compact pills */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: isCustom ? 10 : 0 }}>
-          {presets.map((p, i) => (
-            <button
-              key={p.short}
-              onClick={() => setPresetIdx(i)}
-              style={{
-                padding: '6px 13px',
-                borderRadius: 7,
-                border: `1.5px solid ${presetIdx === i ? T.brand : T.border}`,
-                background: presetIdx === i ? `${T.brand}18` : 'none',
-                color: presetIdx === i ? T.brand : T.muted,
-                fontSize: 13,
-                fontWeight: presetIdx === i ? 700 : 500,
-                cursor: 'pointer',
-                transition: 'all 0.12s',
-              }}
-            >
-              {p.short}
-            </button>
-          ))}
-        </div>
-
-        {/* Show selected range */}
-        {!isCustom && (
-          <div style={{ fontSize: 12, color: T.hint, marginTop: 8 }}>
-            {activePeriod.label} &nbsp;·&nbsp; {activePeriod.start} → {activePeriod.end}
-          </div>
-        )}
-
-        {/* Custom date range */}
-        {isCustom && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-            <input
-              type="date"
-              value={customStart}
-              onChange={e => setCustomStart(e.target.value)}
-              className="input"
-              style={{ flex: 1 }}
-            />
-            <span style={{ color: T.muted }}>→</span>
-            <input
-              type="date"
-              value={customEnd}
-              max={fmt(today())}
-              onChange={e => setCustomEnd(e.target.value)}
-              className="input"
-              style={{ flex: 1 }}
-            />
-          </div>
-        )}
-      </Section>
-
       {/* ── Origem dos dados ── */}
       <Section label="Origem dos dados">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -347,6 +292,82 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
             </div>
           )}
         </div>
+      )}
+
+      {/* ── Período (somente Meta) ── */}
+      {src === 'meta' && (
+        <Section label="Período do relatório">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+            {presets.map((p, i) => (
+              <button
+                key={p.short}
+                onClick={() => setPresetIdx(i)}
+                style={{
+                  padding: '6px 13px',
+                  borderRadius: 7,
+                  border: `1.5px solid ${presetIdx === i ? T.brand : T.border}`,
+                  background: presetIdx === i ? `${T.brand}18` : 'none',
+                  color: presetIdx === i ? T.brand : T.muted,
+                  fontSize: 13,
+                  fontWeight: presetIdx === i ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.12s',
+                }}
+              >
+                {p.short}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom date range */}
+          {isCustom && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+              <input
+                type="date"
+                value={customStart}
+                onChange={e => setCustomStart(e.target.value)}
+                className="input"
+                style={{ flex: 1 }}
+              />
+              <span style={{ color: T.muted }}>→</span>
+              <input
+                type="date"
+                value={customEnd}
+                max={fmt(today())}
+                onChange={e => setCustomEnd(e.target.value)}
+                className="input"
+                style={{ flex: 1 }}
+              />
+            </div>
+          )}
+
+          {/* Preview real-time — vai aparecer assim no relatório */}
+          <div style={{
+            marginTop: 4,
+            padding: '12px 14px',
+            background: `${T.brand}0d`,
+            border: `1.5px solid ${T.brand}33`,
+            borderRadius: 9,
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.brand, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 4 }}>
+              Como vai aparecer no relatório
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>
+              {activePeriod.label}
+            </div>
+            <div style={{ fontSize: 11, color: T.hint, marginTop: 3, fontFamily: 'monospace' }}>
+              {activePeriod.start || '—'} → {activePeriod.end || '—'}
+              {' · '}
+              {(() => {
+                if (!activePeriod.start || !activePeriod.end) return ''
+                const d1 = new Date(activePeriod.start)
+                const d2 = new Date(activePeriod.end)
+                const days = Math.round((d2.getTime() - d1.getTime()) / 86400000) + 1
+                return `${days} dia${days === 1 ? '' : 's'}`
+              })()}
+            </div>
+          </div>
+        </Section>
       )}
 
       {/* CSV upload */}
