@@ -46,6 +46,7 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
 
       ...data.campaigns.map((campaign, i) => {
         const pfx = `campaign.${i}`
+        const slideKey = `campaign-${i}-${campaign.id || campaign.name}`
         const campaignMetrics = [
           { label: 'Investido',    value: fmtBRL(campaign.spend),                       e: mkEdit(`${pfx}.spend`, fmtBRL(campaign.spend)),                        eVisible: mkEdit(`vis.${pfx}.spend`, 'true') },
           { label: 'Impressões',   value: fmtNum(campaign.impressions),                  e: mkEdit(`${pfx}.impressions`, fmtNum(campaign.impressions)),              eVisible: mkEdit(`vis.${pfx}.impressions`, 'true') },
@@ -56,7 +57,7 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
         ]
         return (
           <CampaignSlide
-            key={`campaign-${campaign.id}`}
+            key={slideKey}
             campaign={campaign}
             clientName={data.client}
             clientLogo={clientLogo}

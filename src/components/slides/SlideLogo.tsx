@@ -22,13 +22,22 @@ export function SlideLogo({ clientName, clientLogo, dark = false, position = 'to
       alignItems: 'center',
       gap: 8,
     }}>
-      {/* Client logo or text */}
+      {/* Client logo or text — wrapped em backdrop sutil pra logo branca não sumir em fundo claro */}
       {clientLogo ? (
-        <img
-          src={clientLogo}
-          alt={clientName}
-          style={{ height: 22, maxWidth: 80, objectFit: 'contain', borderRadius: 3 }}
-        />
+        <div style={{
+          // Em slides claros (não-dark), wrap em backdrop sutil escuro pra logo branca aparecer.
+          // Em slides escuros, sem backdrop (logo já contrasta).
+          background: dark ? 'transparent' : 'rgba(0,0,0,0.06)',
+          padding: dark ? 0 : '4px 6px',
+          borderRadius: 5,
+          display: 'flex', alignItems: 'center',
+        }}>
+          <img
+            src={clientLogo}
+            alt={clientName}
+            style={{ height: 22, maxWidth: 80, objectFit: 'contain', display: 'block' }}
+          />
+        </div>
       ) : (
         <span style={{ fontSize: 11, fontWeight: 700, color, letterSpacing: '-0.2px' }}>
           {clientName}

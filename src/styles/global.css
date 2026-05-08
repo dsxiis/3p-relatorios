@@ -47,6 +47,12 @@ select option { background: var(--surface); color: var(--text); }
   from { transform: scaleY(0); }
   to   { transform: scaleY(1); }
 }
+
+/* ── EXPORT MODE ── hide editor-only controls during PDF export ── */
+body.exporting-pdf [data-editor-only],
+body.exporting-pdf [data-editor-only="true"] {
+  display: none !important;
+}
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }

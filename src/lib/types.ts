@@ -138,6 +138,9 @@ export interface MetaAdAccount {
 /* ── FORM ─────────────────────────────────────────────── */
 export type DataSource = 'meta' | 'csv' | 'manual'
 
+export type BestCreativeMetric = 'leads' | 'cpl' | 'clicks' | 'impressions' | 'ctr'
+export type BestCreativeDirection = 'highest' | 'lowest'
+
 export interface GenerateReportPayload {
   client_id: string
   period_start: string
@@ -147,6 +150,10 @@ export interface GenerateReportPayload {
   template_id?: string
   csv_data?: string   // raw CSV rows as JSON string, only when source === 'csv'
   unit_ids?: string[]
+  /** Métrica que define o "melhor criativo" (default: leads/messages → highest) */
+  best_creative_metric?: BestCreativeMetric
+  /** Direção: highest (maior é melhor — leads, clicks) ou lowest (menor é melhor — CPL) */
+  best_creative_direction?: BestCreativeDirection
 }
 
 /* ── DASHBOARD STATS ──────────────────────────────────── */
@@ -224,5 +231,6 @@ export interface EditState {
   value: string
   start: () => void
   change: (v: string) => void
-  save: () => void
+  /** If `value` is passed, saves that value directly (avoids stale closure) */
+  save: (value?: string) => void
 }

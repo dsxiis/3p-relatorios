@@ -90,6 +90,12 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
     if (!container || exporting) return
     setExporting(true)
     showToast('Gerando PDF…')
+
+    // Esconde toda UI de editor durante captura (botões ✏, × ocultar, etc.)
+    document.body.classList.add('exporting-pdf')
+    // Esperar 2 frames pra garantir que o DOM/CSS atualizou
+    await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+
     try {
       const { default: html2canvas } = await import('html2canvas')
       const { jsPDF } = await import('jspdf')
@@ -124,6 +130,7 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
       console.error(err)
       showToast('Erro ao gerar PDF')
     } finally {
+      document.body.classList.remove('exporting-pdf')
       setExporting(false)
     }
   }
@@ -214,11 +221,12 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
       }
     },
     change: (v: string) => setEdits(prev => ({ ...prev, [id]: v })),
-    save: async () => {
+    save: async (explicitValue?: string) => {
       setSaving(true)
       setEditing(null)
-      const value = edits[id] ?? defaultValue
-      const isImage = value.startsWith('data:') || value === ''
+      // Prioridade: valor explícito → state atual → default. Evita stale closure.
+      const value = explicitValue !== undefined ? explicitValue : (edits[id] ?? defaultValue)
+      const isImage = value.startsWith('data:') || (value === '' && id.includes('image'))
 
       if (isImage) {
         // Images stay in localStorage — too large for API
@@ -229,6 +237,10 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
           else delete imgEdits[id]
           localStorage.setItem(`img-edits-${reportKey}`, JSON.stringify(imgEdits))
         } catch { /* ignore */ }
+        // Atualiza o state também pra UI refletir imediatamente
+        if (explicitValue !== undefined) {
+          setEdits(prev => ({ ...prev, [id]: value }))
+        }
         showToast('✓ Imagem salva')
       } else if (report) {
         try {

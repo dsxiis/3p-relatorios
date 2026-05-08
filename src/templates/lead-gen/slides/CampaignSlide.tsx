@@ -65,7 +65,7 @@ export function CampaignSlide({
         display: 'grid',
         gridTemplateColumns: showCreative ? '2fr 1fr' : '1fr',
         gap: 32,
-        alignItems: 'stretch',
+        alignItems: 'flex-start',  // alinha topo — preview do criativo fica na linha do "Leads"
       }}>
         {/* Left: metrics → annotations fills remaining height */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -83,9 +83,9 @@ export function CampaignSlide({
         {/* Right: creative */}
         {showCreative && (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+            <div data-editor-only="true" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
               <button
-                onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save() }}
+                onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save('false') }}
                 style={{
                   background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
                   cursor: 'pointer', padding: '2px 4px',
@@ -118,9 +118,9 @@ export function CampaignSlide({
 
       {/* Add creative back if hidden */}
       {!showCreative && (
-        <div style={{ marginTop: 16 }}>
+        <div data-editor-only="true" style={{ marginTop: 16 }}>
           <button
-            onClick={() => { eCreativeVisible.change('true'); eCreativeVisible.save() }}
+            onClick={() => { eCreativeVisible.change('true'); eCreativeVisible.save('true') }}
             style={{
               background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
               padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',

@@ -56,7 +56,7 @@ export function EditableImage({
     try {
       const dataUrl = await compressImage(file)
       e.change(dataUrl)
-      e.save()
+      e.save(dataUrl)  // valor explícito pra evitar stale closure
     } catch {
       // ignore compression error
     }
@@ -144,7 +144,8 @@ export function EditableImage({
 
       {hasImage && (
         <button
-          onClick={ev => { ev.stopPropagation(); e.change(''); e.save() }}
+          data-editor-only="true"
+          onClick={ev => { ev.stopPropagation(); e.change(''); e.save('') }}
           style={{
             background: 'none', border: 'none',
             fontSize: 10, color: muted, cursor: 'pointer',

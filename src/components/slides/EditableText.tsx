@@ -41,7 +41,8 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
             }}
           />
           <button
-            onClick={e.save}
+            data-editor-only="true"
+            onClick={() => e.save()}
             style={{
               marginTop: 10,
               background: t.accent,
@@ -77,6 +78,7 @@ export function EditableText({ e, placeholder = 'Clique em ✏ para editar', dar
         >
           {e.value || placeholder}
           <button
+            data-editor-only="true"
             onClick={ev => { ev.stopPropagation(); e.start() }}
             style={{
               position: 'absolute', top: 14, right: 14,

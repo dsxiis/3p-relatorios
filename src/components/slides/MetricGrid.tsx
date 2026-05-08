@@ -39,11 +39,11 @@ export function MetricGrid({ metrics, columns = 3, dark = false }: MetricGridPro
 
       {/* Hidden metrics — chips to re-add */}
       {hidden.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+        <div data-editor-only="true" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
           {hidden.map((m, i) => (
             <button
               key={i}
-              onClick={() => { m.eVisible!.change('true'); m.eVisible!.save() }}
+              onClick={() => { m.eVisible!.change('true'); m.eVisible!.save('true') }}
               title={`Mostrar "${m.label}"`}
               style={{
                 background: 'none',
@@ -104,7 +104,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
           position: 'absolute', bottom: 0, left: 0, right: 0, height: 3,
           background: `linear-gradient(90deg, ${accentColor}60, ${accentColor}10)`,
         }} />
-        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save('false') }}
           bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
       </CardShell>
     )
@@ -132,7 +132,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
           position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
           background: `${accentColor}30`,
         }} />
-        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save('false') }}
           bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
       </CardShell>
     )
@@ -156,7 +156,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
         {m.sub && <Sub>{m.sub}</Sub>}
         <Value e={m.e} dark={dark} value={m.value} color={textColor} size={t.metricValueSize}
           accentBelow={accentColor} />
-        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+        <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save('false') }}
           bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
       </CardShell>
     )
@@ -176,7 +176,7 @@ function MetricCard({ m, dark }: MetricCardProps) {
       <Label color={mutedColor}>{m.label}</Label>
       {m.sub && <Sub>{m.sub}</Sub>}
       <Value e={m.e} dark={dark} value={m.value} color={textColor} size={t.metricValueSize} />
-      <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save() }}
+      <HideBtn show={!!m.eVisible && hovered} onHide={() => { m.eVisible!.change('false'); m.eVisible!.save('false') }}
         bg={dark ? t.darkSlideBorder : t.slideBorder} muted={mutedColor} />
     </CardShell>
   )
@@ -242,6 +242,7 @@ function HideBtn({ show, onHide, bg, muted }:
   if (!show) return null
   return (
     <button
+      data-editor-only="true"
       onClick={e => { e.stopPropagation(); onHide() }}
       title="Esconder esta métrica"
       style={{

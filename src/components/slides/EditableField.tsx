@@ -49,7 +49,7 @@ export function EditableField({
         ref={ref as any}
         value={e.value}
         onChange={ev => e.change(ev.target.value)}
-        onBlur={e.save}
+        onBlur={() => e.save()}
         placeholder={placeholder}
         rows={3}
         style={{ ...shared, resize: 'none', lineHeight: (style.lineHeight as string) ?? '1.5' }}
@@ -59,7 +59,7 @@ export function EditableField({
         ref={ref as any}
         value={e.value}
         onChange={ev => e.change(ev.target.value)}
-        onBlur={e.save}
+        onBlur={() => e.save()}
         onKeyDown={ev => { if (ev.key === 'Enter') { ev.preventDefault(); e.save() } }}
         placeholder={placeholder}
         style={shared}

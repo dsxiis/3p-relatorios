@@ -18,6 +18,7 @@ export function EditableBlock({ label, e, small = false, minHeight }: EditableBl
         <div className="editable-label" style={{ fontSize: small ? 9 : 10 }}>{label}</div>
         {!e.active ? (
           <button
+            data-editor-only="true"
             onClick={e.start}
             className="editable-btn"
             style={{ background: '#F5F0FF', color: '#8B35E8' }}
@@ -26,7 +27,8 @@ export function EditableBlock({ label, e, small = false, minHeight }: EditableBl
           </button>
         ) : (
           <button
-            onClick={e.save}
+            data-editor-only="true"
+            onClick={() => e.save()}
             className="editable-btn"
             style={{ background: '#8B35E8', color: '#fff' }}
           >

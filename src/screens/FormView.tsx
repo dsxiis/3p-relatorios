@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
-import type { Client, Screen, DataSource } from '../lib/types'
+import type { Client, Screen, DataSource, BestCreativeMetric, BestCreativeDirection } from '../lib/types'
 import { apiReports, apiClients } from '../lib/api'
 import { parseCsvFile } from '../lib/csvParser'
 import { T } from '../styles/tokens'
@@ -86,6 +86,8 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
   const [localMetaAccount, setLocalMetaAccount] = useState<string | null>(client.meta_account_id)
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [bestMetric, setBestMetric] = useState<BestCreativeMetric>('leads')
+  const [bestDirection, setBestDirection] = useState<BestCreativeDirection>('highest')
   const [selectedUnits, setSelectedUnits] = useState<string[]>(
     client.units?.map(u => u.id) ?? []
   )
@@ -146,6 +148,8 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
         template_id: selectedThemeId,
         csv_data: csvData,
         unit_ids: isFranchise ? selectedUnits : undefined,
+        best_creative_metric: src === 'meta' ? bestMetric : undefined,
+        best_creative_direction: src === 'meta' ? bestDirection : undefined,
       })
 
       const reportId = (result as { id: string }).id
@@ -366,6 +370,74 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
                 return `${days} dia${days === 1 ? '' : 's'}`
               })()}
             </div>
+          </div>
+        </Section>
+      )}
+
+      {/* ── Critério do "melhor criativo" (somente Meta) ── */}
+      {src === 'meta' && (
+        <Section label="Critério do melhor criativo">
+          <div style={{ fontSize: 12, color: T.muted, marginBottom: 10 }}>
+            Como definir qual anúncio aparece como "Melhor Criativo" em cada campanha:
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
+            {/* Métrica */}
+            <select
+              value={bestMetric}
+              onChange={e => {
+                const m = e.target.value as BestCreativeMetric
+                setBestMetric(m)
+                // Auto-set direção razoável
+                if (m === 'cpl') setBestDirection('lowest')
+                else setBestDirection('highest')
+              }}
+              style={{
+                background: T.surface, border: `1px solid ${T.border}`,
+                borderRadius: 8, padding: '9px 12px', fontSize: 13, color: T.text,
+                outline: 'none', cursor: 'pointer',
+              }}
+            >
+              <option value="leads">Leads / Mensagens</option>
+              <option value="cpl">CPL (Custo por Lead)</option>
+              <option value="clicks">Cliques</option>
+              <option value="impressions">Impressões</option>
+              <option value="ctr">CTR (taxa de clique)</option>
+            </select>
+
+            {/* Direção: highest/lowest */}
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button
+                onClick={() => setBestDirection('highest')}
+                title="Maior valor é melhor"
+                style={{
+                  background: bestDirection === 'highest' ? `${T.brand}18` : T.surface,
+                  border: `1.5px solid ${bestDirection === 'highest' ? T.brand : T.border}`,
+                  borderRadius: 8, padding: '9px 14px',
+                  fontSize: 13, fontWeight: 700,
+                  color: bestDirection === 'highest' ? T.brand : T.muted,
+                  cursor: 'pointer',
+                }}
+              >
+                ↑ Maior
+              </button>
+              <button
+                onClick={() => setBestDirection('lowest')}
+                title="Menor valor é melhor"
+                style={{
+                  background: bestDirection === 'lowest' ? `${T.brand}18` : T.surface,
+                  border: `1.5px solid ${bestDirection === 'lowest' ? T.brand : T.border}`,
+                  borderRadius: 8, padding: '9px 14px',
+                  fontSize: 13, fontWeight: 700,
+                  color: bestDirection === 'lowest' ? T.brand : T.muted,
+                  cursor: 'pointer',
+                }}
+              >
+                ↓ Menor
+              </button>
+            </div>
+          </div>
+          <div style={{ fontSize: 11, color: T.hint, marginTop: 8 }}>
+            Ex.: <b>Leads ↑ Maior</b> = ad com mais leads vence. <b>CPL ↓ Menor</b> = ad com menor custo por lead vence.
           </div>
         </Section>
       )}

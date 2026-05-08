@@ -160,8 +160,8 @@ export function CreativeSpot({
         </div>
       )}
 
-      {/* === IMAGE (embaixo, menor — 4:3 landscape) === */}
-      <div style={{ width: '100%', aspectRatio: '4 / 3' }}>
+      {/* === IMAGE — altura FIXA pra não adaptar com tamanho da imagem === */}
+      <div style={{ width: '100%', height: 200, position: 'relative' }}>
         {eImage ? (
           <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
         ) : (
