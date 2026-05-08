@@ -165,7 +165,8 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
 
   const canGenerate =
     (src !== 'csv' || csvFile !== null) &&
-    (src !== 'meta' || !!localMetaAccount) &&
+    // Lead Gen exige conta no cliente. Franquia exige só ao menos 1 unidade com Meta selecionada.
+    (src !== 'meta' || isFranchise || !!localMetaAccount) &&
     (!isCustom || (customStart !== '' && customEnd !== '' && customStart <= customEnd)) &&
     (!isFranchise || selectedUnits.length > 0)
 
@@ -223,8 +224,8 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
         </div>
       </Section>
 
-      {/* Meta account status */}
-      {src === 'meta' && (
+      {/* Meta account status — só pra Lead Gen (franquia tem Meta por unidade) */}
+      {src === 'meta' && !isFranchise && (
         <div style={{ marginBottom: 24 }}>
           {localMetaAccount && !linkingAccount ? (
             <div style={{
