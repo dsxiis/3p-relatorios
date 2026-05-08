@@ -190,6 +190,56 @@ html.embedded .screen-root {
   }
 }
 
+/* ── DASHBOARD GRIDS (responsivos) ──────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dash-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 14px;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+.dash-chart-cell { min-width: 0; }
+.dash-activity-cell { min-width: 0; }
+
+.dash-clients-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.recent-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+/* Telas médias-pequenas — empilha chart + activity, mantém clientes em 2 col */
+@media (max-width: 900px) {
+  .dash-row {
+    grid-template-columns: 1fr;
+  }
+  .recent-activity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Telas estreitas — tudo em 1 coluna */
+@media (max-width: 640px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+  .dash-clients-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── SIDEBAR ─────────────────────────────────────────── */
 .sidebar {
   width: 230px;

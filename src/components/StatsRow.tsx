@@ -14,7 +14,7 @@ export function StatsRow({ stats, loading }: StatsRowProps) {
   ]
 
   return (
-    <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+    <div className="stats-row">
       {items.map(({ label, value }) => (
         <div
           key={label}

@@ -102,10 +102,10 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
 
       {/* Chart + Activity row */}
       {(hasChartData || statsLoading || (stats && stats.recent_reports.length > 0)) && (
-        <div style={{ display: 'flex', gap: 14, marginBottom: 20, alignItems: 'stretch' }}>
+        <div className="dash-row">
           {/* Bar chart */}
           {(hasChartData || statsLoading) && (
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="dash-chart-cell">
               {statsLoading ? (
                 <div style={{
                   background: T.surface, border: `0.5px solid ${T.border}`,
@@ -119,7 +119,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
           )}
 
           {/* Recent activity */}
-          <div style={{ flex: 2, minWidth: 0 }}>
+          <div className="dash-activity-cell">
             <RecentActivity
               reports={stats?.recent_reports ?? []}
               loading={statsLoading}
@@ -146,7 +146,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
       ) : clients.length === 0 ? (
         <EmptyState onAdd={() => setShowModal(true)} />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+        <div className="dash-clients-grid">
           {clients.map((c, i) => {
             const perClient = stats?.per_client_counts?.find(x => x.client_id === c.id)
             return (

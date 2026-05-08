@@ -48,7 +48,7 @@ export function RecentActivity({ reports, loading, onNavigateToClient }: RecentA
           <span style={{ fontSize: 13, color: T.hint }}>Nenhum relatório ainda</span>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
+        <div className="recent-activity-grid">
           {reports.map((r, i) => {
             const st = STATUS[r.status] ?? STATUS.generating
             const color = r.client_color || '#8B35E8'
