@@ -226,7 +226,11 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
       setEditing(null)
       // Prioridade: valor explícito → state atual → default. Evita stale closure.
       const value = explicitValue !== undefined ? explicitValue : (edits[id] ?? defaultValue)
-      const isImage = value.startsWith('data:') || (value === '' && id.includes('image'))
+      // Imagens (data URL ou URL externa) são pesadas pra mandar pro servidor — fica só local.
+      // Identificamos pelo padrão do id (.image) ou pelo prefixo data:.
+      const isImage = value.startsWith('data:')
+        || /\.image$/.test(id)
+        || (value === '' && /\.image$/.test(id))
 
       if (isImage) {
         // Images stay in localStorage — too large for API

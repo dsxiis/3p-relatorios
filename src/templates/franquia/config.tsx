@@ -40,6 +40,8 @@ export const franquiaConfig: TemplateConfig<FranchiseData> = {
           { label: 'CPC',          value: fmtBRL(unit.cpc),           accentColor: '#34d399', e: mkEdit(`${pfx}.cpc`, fmtBRL(unit.cpc)),                    eVisible: mkEdit(`vis.${pfx}.cpc`, 'true') },
           { label: 'Investimento', value: fmtBRL(unit.spend),         accentColor: '#8833ff', e: mkEdit(`${pfx}.spend`, fmtBRL(unit.spend)),                eVisible: mkEdit(`vis.${pfx}.spend`, 'true') },
         ]
+        const v = unit.bestVideo
+        const im = unit.bestImage ?? unit.bestAd  // fallback pro bestAd legado
         return (
           <UnitSlide
             key={`unit-${unit.id}`}
@@ -50,20 +52,24 @@ export const franquiaConfig: TemplateConfig<FranchiseData> = {
             ePeriod={ePeriod}
             eAnnotation={mkEdit(`${pfx}.annotation`, unit.annotation)}
             eCity={mkEdit(`${pfx}.city`, unit.city)}
-            eAdImage={mkEdit(`${pfx}.ad.image`, '')}
-            eAdClicks={mkEdit(`${pfx}.ad.clicks`, String(unit.bestAd?.clicks ?? 0))}
-            eAdMessages={mkEdit(`${pfx}.ad.messages`, String(unit.bestAd?.messages ?? 0))}
-            eAdCpl={mkEdit(`${pfx}.ad.cpl`, unit.bestAd ? `CPL R$ ${unit.bestAd.cpl.toFixed(2)}` : '—')}
-            eAdImpressions={mkEdit(`${pfx}.ad.impressions`, String(unit.bestAd?.impressions ?? 0))}
-            eAdCtr={mkEdit(`${pfx}.ad.ctr`, unit.bestAd?.ctr ? `${unit.bestAd.ctr.toFixed(2)}%` : '—')}
-            eAdVisible={mkEdit(`vis.${pfx}.ad`, 'true')}
-            eVideoImage={mkEdit(`${pfx}.video.image`, '')}
-            eVideoClicks={mkEdit(`${pfx}.video.clicks`, String(unit.bestVideo?.clicks ?? 0))}
-            eVideoMessages={mkEdit(`${pfx}.video.messages`, String(unit.bestVideo?.messages ?? 0))}
-            eVideoCpl={mkEdit(`${pfx}.video.cpl`, unit.bestVideo ? `CPL R$ ${unit.bestVideo.cpl.toFixed(2)}` : '—')}
-            eVideoImpressions={mkEdit(`${pfx}.video.impressions`, String(unit.bestVideo?.impressions ?? 0))}
-            eVideoCtr={mkEdit(`${pfx}.video.ctr`, unit.bestVideo?.ctr ? `${unit.bestVideo.ctr.toFixed(2)}%` : '—')}
+            // Vídeo
+            eVideoImage={mkEdit(`${pfx}.video.image`, v?.thumbnail_url ?? '')}
+            eVideoLink={mkEdit(`${pfx}.video.link`, v?.preview_link ?? '')}
+            eVideoClicks={mkEdit(`${pfx}.video.clicks`, String(v?.clicks ?? 0))}
+            eVideoMessages={mkEdit(`${pfx}.video.messages`, String(v?.messages ?? 0))}
+            eVideoCpl={mkEdit(`${pfx}.video.cpl`, v ? `R$ ${v.cpl.toFixed(2)}` : '—')}
+            eVideoImpressions={mkEdit(`${pfx}.video.impressions`, String(v?.impressions ?? 0))}
+            eVideoCtr={mkEdit(`${pfx}.video.ctr`, v?.ctr ? `${v.ctr.toFixed(2)}%` : '—')}
             eVideoVisible={mkEdit(`vis.${pfx}.video`, 'true')}
+            // Estático
+            eImageImage={mkEdit(`${pfx}.static.image`, im?.thumbnail_url ?? '')}
+            eImageLink={mkEdit(`${pfx}.static.link`, im?.preview_link ?? '')}
+            eImageClicks={mkEdit(`${pfx}.static.clicks`, String(im?.clicks ?? 0))}
+            eImageMessages={mkEdit(`${pfx}.static.messages`, String(im?.messages ?? 0))}
+            eImageCpl={mkEdit(`${pfx}.static.cpl`, im ? `R$ ${im.cpl.toFixed(2)}` : '—')}
+            eImageImpressions={mkEdit(`${pfx}.static.impressions`, String(im?.impressions ?? 0))}
+            eImageCtr={mkEdit(`${pfx}.static.ctr`, im?.ctr ? `${im.ctr.toFixed(2)}%` : '—')}
+            eImageVisible={mkEdit(`vis.${pfx}.static`, 'true')}
           />
         )
       }),

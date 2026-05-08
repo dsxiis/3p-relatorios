@@ -25,66 +25,46 @@ interface UnitSlideProps {
   ePeriod: EditState
   eAnnotation: EditState
   eCity: EditState
-  eAdImage: EditState
-  eAdClicks: EditState
-  eAdMessages: EditState
-  eAdCpl: EditState
-  eAdImpressions: EditState
-  eAdCtr: EditState
-  eAdVisible: EditState
+  // Vídeo
   eVideoImage: EditState
+  eVideoLink: EditState
   eVideoClicks: EditState
   eVideoMessages: EditState
   eVideoCpl: EditState
   eVideoImpressions: EditState
   eVideoCtr: EditState
   eVideoVisible: EditState
-}
-
-function ShowBtn({ label, accent, border, muted, onShow }: {
-  label: string; accent: string; border: string; muted: string; onShow: () => void
-}) {
-  return (
-    <button
-      onClick={onShow}
-      style={{
-        background: 'none', border: `1px dashed ${border}`, borderRadius: 6,
-        padding: '4px 10px', fontSize: 12, color: muted, cursor: 'pointer',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
-    >
-      + {label}
-    </button>
-  )
-}
-
-function HideBtn({ label, muted, onHide }: { label: string; muted: string; onHide: () => void }) {
-  return (
-    <button
-      onClick={onHide}
-      style={{
-        background: 'none', border: 'none', fontSize: 11, color: muted,
-        cursor: 'pointer', padding: '2px 4px',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = muted }}
-    >
-      × {label}
-    </button>
-  )
+  // Estático
+  eImageImage: EditState
+  eImageLink: EditState
+  eImageClicks: EditState
+  eImageMessages: EditState
+  eImageCpl: EditState
+  eImageImpressions: EditState
+  eImageCtr: EditState
+  eImageVisible: EditState
 }
 
 export function UnitSlide({
   unit, clientName, clientLogo, metrics,
   ePeriod, eAnnotation, eCity,
-  eAdImage, eAdClicks, eAdMessages, eAdCpl, eAdImpressions, eAdCtr, eAdVisible,
-  eVideoImage, eVideoClicks, eVideoMessages, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
+  eVideoImage, eVideoLink, eVideoClicks, eVideoMessages, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
+  eImageImage, eImageLink, eImageClicks, eImageMessages, eImageCpl, eImageImpressions, eImageCtr, eImageVisible,
 }: UnitSlideProps) {
   const t = useTheme()
-  const showAd    = eAdVisible.value !== 'false'
+
+  const videoData = unit.bestVideo
+  const imageData = unit.bestImage ?? unit.bestAd  // fallback pro bestAd legado se não tem bestImage
+
   const showVideo = eVideoVisible.value !== 'false'
-  const hasCreatives = showAd || showVideo
+  const showImage = eImageVisible.value !== 'false'
+
+  const visibleCount = (showVideo ? 1 : 0) + (showImage ? 1 : 0)
+  const gridCols = visibleCount === 0
+    ? '1fr'
+    : visibleCount === 1
+      ? '1.6fr 1fr'
+      : '1.4fr 0.85fr 0.85fr'
 
   return (
     <SlideShell>
@@ -101,16 +81,16 @@ export function UnitSlide({
         </div>
       </div>
 
-      {/* Main grid: metrics+annotations | creatives */}
+      {/* Main grid: metrics+annotations | melhor vídeo | melhor estático */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: hasCreatives ? '2fr 1fr' : '1fr',
-        gap: 32,
-        alignItems: 'stretch',
+        gridTemplateColumns: gridCols,
+        gap: 18,
+        alignItems: 'flex-start',
       }}>
-        {/* Left: metrics → annotations fills remaining height */}
+        {/* Esquerda */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <MetricGrid metrics={metrics} columns={3} />
+          <MetricGrid metrics={metrics} columns={2} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <SectionLabel style={{ marginBottom: 10 }}>Anotações</SectionLabel>
             <EditableText
@@ -121,63 +101,128 @@ export function UnitSlide({
           </div>
         </div>
 
-        {/* Right: creatives stacked */}
-        {hasCreatives && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {showAd && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-                  <HideBtn label="ocultar AD" muted={t.slideMuted}
-                    onHide={() => { eAdVisible.change('false'); eAdVisible.save() }} />
-                </div>
-                <CreativeSpot
-                  label="Melhor AD"
-                  metrics={{
-                    clicks: unit.bestAd?.clicks,
-                    messages: unit.bestAd?.messages,
-                    cpl: unit.bestAd?.cpl,
-                    impressions: unit.bestAd?.impressions,
-                    ctr: unit.bestAd?.ctr,
-                  }}
-                  eImage={eAdImage} eClicks={eAdClicks} eMessages={eAdMessages} eCpl={eAdCpl}
-                  eImpressions={eAdImpressions} eCtr={eAdCtr}
-                />
+        {/* Melhor Vídeo */}
+        {showVideo && (
+          <div style={{ position: 'relative' }}>
+            <button
+              data-editor-only="true"
+              onClick={() => { eVideoVisible.change('false'); eVideoVisible.save('false') }}
+              style={{
+                position: 'absolute', top: -22, right: 0, zIndex: 5,
+                background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
+                cursor: 'pointer', padding: '2px 4px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+              onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
+              title="Ocultar Melhor Vídeo"
+            >
+              × ocultar
+            </button>
+            <CreativeSpot
+              label="🎬 Melhor Vídeo"
+              metrics={videoData ? {
+                clicks: videoData.clicks,
+                messages: videoData.messages,
+                cpl: videoData.cpl,
+                impressions: videoData.impressions,
+                ctr: videoData.ctr,
+              } : { clicks: 0, messages: 0, cpl: 0, impressions: 0, ctr: 0 }}
+              previewLink={videoData?.preview_link}
+              adName={videoData?.ad_name}
+              eImage={eVideoImage}
+              eLink={eVideoLink}
+              eClicks={eVideoClicks}
+              eMessages={eVideoMessages}
+              eCpl={eVideoCpl}
+              eImpressions={eVideoImpressions}
+              eCtr={eVideoCtr}
+            />
+            {!videoData && (
+              <div data-editor-only="true" style={{
+                marginTop: 6, fontSize: 10, color: t.slideHint,
+                textAlign: 'center', fontStyle: 'italic',
+              }}>
+                Sem vídeo nesse período — você pode adicionar manualmente
               </div>
             )}
-            {showVideo && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-                  <HideBtn label="ocultar VID" muted={t.slideMuted}
-                    onHide={() => { eVideoVisible.change('false'); eVideoVisible.save() }} />
-                </div>
-                <CreativeSpot
-                  label="Melhor VID"
-                  metrics={{
-                    clicks: unit.bestVideo?.clicks,
-                    messages: unit.bestVideo?.messages,
-                    cpl: unit.bestVideo?.cpl,
-                    impressions: unit.bestVideo?.impressions,
-                    ctr: unit.bestVideo?.ctr,
-                  }}
-                  eImage={eVideoImage} eClicks={eVideoClicks} eMessages={eVideoMessages} eCpl={eVideoCpl}
-                  eImpressions={eVideoImpressions} eCtr={eVideoCtr}
-                />
+          </div>
+        )}
+
+        {/* Melhor Estático */}
+        {showImage && (
+          <div style={{ position: 'relative' }}>
+            <button
+              data-editor-only="true"
+              onClick={() => { eImageVisible.change('false'); eImageVisible.save('false') }}
+              style={{
+                position: 'absolute', top: -22, right: 0, zIndex: 5,
+                background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
+                cursor: 'pointer', padding: '2px 4px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+              onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
+              title="Ocultar Melhor Estático"
+            >
+              × ocultar
+            </button>
+            <CreativeSpot
+              label="🖼 Melhor Estático"
+              metrics={imageData ? {
+                clicks: imageData.clicks,
+                messages: imageData.messages,
+                cpl: imageData.cpl,
+                impressions: imageData.impressions,
+                ctr: imageData.ctr,
+              } : { clicks: 0, messages: 0, cpl: 0, impressions: 0, ctr: 0 }}
+              previewLink={imageData?.preview_link}
+              adName={imageData?.ad_name}
+              eImage={eImageImage}
+              eLink={eImageLink}
+              eClicks={eImageClicks}
+              eMessages={eImageMessages}
+              eCpl={eImageCpl}
+              eImpressions={eImageImpressions}
+              eCtr={eImageCtr}
+            />
+            {!imageData && (
+              <div data-editor-only="true" style={{
+                marginTop: 6, fontSize: 10, color: t.slideHint,
+                textAlign: 'center', fontStyle: 'italic',
+              }}>
+                Sem estático nesse período — você pode adicionar manualmente
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Re-add hidden creatives */}
-      {(!showAd || !showVideo) && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          {!showAd && (
-            <ShowBtn label="Melhor AD" accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
-              onShow={() => { eAdVisible.change('true'); eAdVisible.save() }} />
-          )}
+      {(!showVideo || !showImage) && (
+        <div data-editor-only="true" style={{ marginTop: 16, display: 'flex', gap: 8 }}>
           {!showVideo && (
-            <ShowBtn label="Melhor VID" accent={t.accent} border={t.slideBorder} muted={t.slideMuted}
-              onShow={() => { eVideoVisible.change('true'); eVideoVisible.save() }} />
+            <button
+              onClick={() => { eVideoVisible.change('true'); eVideoVisible.save('true') }}
+              style={{
+                background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
+                padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
+            >
+              + 🎬 Melhor Vídeo
+            </button>
+          )}
+          {!showImage && (
+            <button
+              onClick={() => { eImageVisible.change('true'); eImageVisible.save('true') }}
+              style={{
+                background: 'none', border: `1px dashed ${t.slideBorder}`, borderRadius: 6,
+                padding: '5px 12px', fontSize: 12, color: t.slideMuted, cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.color = t.accent }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = t.slideBorder; e.currentTarget.style.color = t.slideMuted }}
+            >
+              + 🖼 Melhor Estático
+            </button>
           )}
         </div>
       )}

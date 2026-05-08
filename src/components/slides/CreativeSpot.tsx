@@ -16,11 +16,12 @@ interface CreativeSpotProps {
   label: string
   metrics?: CreativeMetrics
   dark?: boolean
-  // Link pra abrir o anúncio na Meta Ads Manager (opcional)
+  // Link e nome do ad — passados pra edit state quando vem do Meta
   previewLink?: string | null
   adName?: string | null
   // Edit states — all optional for backwards compat
   eImage?: EditState
+  eLink?: EditState     // link editável pro preview do anúncio
   eClicks?: EditState
   eLeads?: EditState
   eMessages?: EditState
@@ -40,6 +41,7 @@ export function CreativeSpot({
   previewLink,
   adName,
   eImage,
+  eLink,
   eClicks,
   eLeads,
   eMessages,
@@ -47,6 +49,8 @@ export function CreativeSpot({
   eImpressions,
   eCtr,
 }: CreativeSpotProps) {
+  // Link efetivo: prioridade pro estado editado, fallback pro vindo da Meta
+  const effectiveLink = (eLink?.value ?? previewLink ?? '').trim()
   const t = useTheme()
   const text   = dark ? t.darkSlideText : t.slideText
   const muted  = dark ? t.darkSlideMuted : t.slideMuted
@@ -93,22 +97,62 @@ export function CreativeSpot({
             </div>
           )}
         </div>
-        {previewLink && (
-          <a
-            href={previewLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Abrir anúncio na Meta"
+        {effectiveLink && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <a
+              href={effectiveLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Abrir anúncio na Meta"
+              style={{
+                fontSize: 11, color: t.accent, fontWeight: 700,
+                textDecoration: 'none',
+                padding: '3px 8px', borderRadius: 5,
+                background: `${t.accent}18`,
+              }}
+            >
+              ↗ Ver
+            </a>
+            {eLink && (
+              <button
+                data-editor-only="true"
+                onClick={() => {
+                  const url = window.prompt('Editar link do anúncio (deixe vazio pra remover):', effectiveLink)
+                  if (url !== null) {
+                    eLink.change(url)
+                    eLink.save(url)
+                  }
+                }}
+                title="Editar link"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '2px 4px', fontSize: 10, color: muted,
+                }}
+              >
+                ✏
+              </button>
+            )}
+          </div>
+        )}
+        {!effectiveLink && eLink && (
+          <button
+            data-editor-only="true"
+            onClick={() => {
+              const url = window.prompt('Adicionar link do anúncio:', '')
+              if (url) {
+                eLink.change(url)
+                eLink.save(url)
+              }
+            }}
             style={{
-              fontSize: 11, color: t.accent, fontWeight: 700,
-              textDecoration: 'none',
+              fontSize: 10, color: muted,
+              background: 'none', border: `1px dashed ${border}`,
               padding: '3px 8px', borderRadius: 5,
-              background: `${t.accent}18`,
-              flexShrink: 0,
+              cursor: 'pointer', flexShrink: 0,
             }}
           >
-            ↗ Ver
-          </a>
+            + link
+          </button>
         )}
       </div>
 

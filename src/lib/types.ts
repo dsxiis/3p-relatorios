@@ -85,8 +85,9 @@ export interface FranchiseUnitData {
   conversations: number
   cpc: number
   spend: number
-  bestAd?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number }
-  bestVideo?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number }
+  bestAd?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number; ad_id?: string; ad_name?: string | null; preview_link?: string | null; thumbnail_url?: string | null }
+  bestVideo?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number; ad_id?: string; ad_name?: string | null; preview_link?: string | null; thumbnail_url?: string | null }
+  bestImage?: { clicks: number; messages: number; cpl: number; impressions?: number; ctr?: number; ad_id?: string; ad_name?: string | null; preview_link?: string | null; thumbnail_url?: string | null }
   annotation: string
 }
 

@@ -27,6 +27,7 @@ interface CampaignSlideProps {
   eName: EditState
   // Vídeo
   eVideoImage: EditState
+  eVideoLink: EditState
   eVideoClicks: EditState
   eVideoLeads: EditState
   eVideoCpl: EditState
@@ -35,6 +36,7 @@ interface CampaignSlideProps {
   eVideoVisible: EditState
   // Estático
   eImageImage: EditState
+  eImageLink: EditState
   eImageClicks: EditState
   eImageLeads: EditState
   eImageCpl: EditState
@@ -46,8 +48,8 @@ interface CampaignSlideProps {
 export function CampaignSlide({
   campaign, clientName, clientLogo, metrics,
   ePeriod, eAnnotation, eName,
-  eVideoImage, eVideoClicks, eVideoLeads, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
-  eImageImage, eImageClicks, eImageLeads, eImageCpl, eImageImpressions, eImageCtr, eImageVisible,
+  eVideoImage, eVideoLink, eVideoClicks, eVideoLeads, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
+  eImageImage, eImageLink, eImageClicks, eImageLeads, eImageCpl, eImageImpressions, eImageCtr, eImageVisible,
 }: CampaignSlideProps) {
   const t = useTheme()
 
@@ -132,6 +134,7 @@ export function CampaignSlide({
               previewLink={videoData?.preview_link}
               adName={videoData?.ad_name}
               eImage={eVideoImage}
+              eLink={eVideoLink}
               eClicks={eVideoClicks}
               eLeads={eVideoLeads}
               eCpl={eVideoCpl}
@@ -178,6 +181,7 @@ export function CampaignSlide({
               previewLink={imageData?.preview_link}
               adName={imageData?.ad_name}
               eImage={eImageImage}
+              eLink={eImageLink}
               eClicks={eImageClicks}
               eLeads={eImageLeads}
               eCpl={eImageCpl}

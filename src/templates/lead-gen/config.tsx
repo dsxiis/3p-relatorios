@@ -69,7 +69,8 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
             eAnnotation={mkEdit(`${pfx}.annotation`, campaign.annotation)}
             eName={mkEdit(`${pfx}.name`, campaign.name)}
             // Vídeo (mostra sempre, mesmo sem dados — usuário pode adicionar manualmente)
-            eVideoImage={mkEdit(`${pfx}.video.image`, '')}
+            eVideoImage={mkEdit(`${pfx}.video.image`, v?.thumbnail_url ?? '')}
+            eVideoLink={mkEdit(`${pfx}.video.link`, v?.preview_link ?? '')}
             eVideoClicks={mkEdit(`${pfx}.video.clicks`, String(v?.clicks ?? 0))}
             eVideoLeads={mkEdit(`${pfx}.video.leads`, String(v?.leads ?? 0))}
             eVideoCpl={mkEdit(`${pfx}.video.cpl`, v ? `R$ ${v.cpl.toFixed(2)}` : '—')}
@@ -77,7 +78,8 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
             eVideoCtr={mkEdit(`${pfx}.video.ctr`, v?.ctr ? `${v.ctr.toFixed(2)}%` : '—')}
             eVideoVisible={mkEdit(`vis.${pfx}.video`, 'true')}
             // Estático
-            eImageImage={mkEdit(`${pfx}.static.image`, '')}
+            eImageImage={mkEdit(`${pfx}.static.image`, im?.thumbnail_url ?? '')}
+            eImageLink={mkEdit(`${pfx}.static.link`, im?.preview_link ?? '')}
             eImageClicks={mkEdit(`${pfx}.static.clicks`, String(im?.clicks ?? 0))}
             eImageLeads={mkEdit(`${pfx}.static.leads`, String(im?.leads ?? 0))}
             eImageCpl={mkEdit(`${pfx}.static.cpl`, im ? `R$ ${im.cpl.toFixed(2)}` : '—')}
