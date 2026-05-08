@@ -82,7 +82,7 @@ export function EditableImage({
         title={hasImage ? 'Clique para trocar imagem' : 'Clique ou arraste para adicionar imagem'}
         style={{
           width,
-          height: hasImage ? 'auto' : height,    // altura natural quando tem imagem
+          height,
           borderRadius: hasImage ? 0 : 8,
           border: `1.5px dashed ${hasImage ? 'transparent' : border}`,
           background: hasImage ? 'transparent' : bg,
@@ -113,7 +113,9 @@ export function EditableImage({
               alt="criativo"
               style={{
                 width: '100%',
-                height: 'auto',
+                height: '100%',
+                objectFit: 'contain',  /* IMAGEM SE ADAPTA AO RETÂNGULO FIXO */
+                objectPosition: 'center',
                 display: 'block',
               }}
             />

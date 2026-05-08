@@ -160,29 +160,25 @@ export function CreativeSpot({
         </div>
       )}
 
-      {/* === IMAGE — largura 100%, altura proporcional, max-height pra não estourar === */}
+      {/* === IMAGE — RETÂNGULO FIXO, imagem se adapta dentro === */}
       <div style={{
         width: '100%',
-        maxHeight: 280,
-        overflow: 'hidden',
+        height: 380,                           /* TAMANHO FIXO — não adapta com imagem */
         background: dark ? t.darkSlideCardBg : '#f9fafb',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        // Garante altura mínima quando não tem imagem
-        minHeight: eImage?.value ? undefined : 140,
+        overflow: 'hidden',
       }}>
         {eImage ? (
-          <EditableImage e={eImage} dark={dark} width="100%" height="auto" />
+          <EditableImage e={eImage} dark={dark} width="100%" height="100%" />
         ) : (
           <div style={{
-            width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 28,
+            fontSize: 36,
             color: muted,
-            padding: '24px 0',
           }}>
             🖼
           </div>

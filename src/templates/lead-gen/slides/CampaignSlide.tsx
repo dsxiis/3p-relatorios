@@ -82,20 +82,24 @@ export function CampaignSlide({
 
         {/* Right: creative */}
         {showCreative && (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div data-editor-only="true" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-              <button
-                onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save('false') }}
-                style={{
-                  background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
-                  cursor: 'pointer', padding: '2px 4px',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
-                onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
-              >
-                × ocultar
-              </button>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            {/* Botão × ocultar absoluto pra não empurrar o card pra baixo (alinha com INVESTIDO) */}
+            <button
+              data-editor-only="true"
+              onClick={() => { eCreativeVisible.change('false'); eCreativeVisible.save('false') }}
+              style={{
+                position: 'absolute',
+                top: -22,
+                right: 0,
+                background: 'none', border: 'none', fontSize: 11, color: t.slideHint,
+                cursor: 'pointer', padding: '2px 4px',
+                zIndex: 5,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+              onMouseLeave={e => { e.currentTarget.style.color = t.slideHint }}
+            >
+              × ocultar
+            </button>
             <CreativeSpot
               label="Melhor Criativo"
               metrics={{
