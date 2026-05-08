@@ -92,7 +92,12 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
     showToast('Gerando PDF…')
 
     // Esconde toda UI de editor durante captura (botões ✏, × ocultar, etc.)
+    // E reseta o zoom do embed pra evitar texto duplicado/com kerning quebrado no html2canvas.
     document.body.classList.add('exporting-pdf')
+    // Espera fontes carregarem (evita fallback metrics no html2canvas)
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready } catch {}
+    }
     // Esperar 2 frames pra garantir que o DOM/CSS atualizou
     await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))
 
@@ -112,7 +117,10 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
           allowTaint: true,
           backgroundColor: null,
           logging: false,
-        })
+          letterRendering: true,
+          windowWidth: w,
+          windowHeight: h,
+        } as Parameters<typeof html2canvas>[1])
         const imgData = canvas.toDataURL('image/jpeg', 0.93)
         if (i === 0) {
           pdf = new jsPDF({ orientation: w >= h ? 'l' : 'p', unit: 'px', format: [w, h], hotfixes: ['px_scaling'] })

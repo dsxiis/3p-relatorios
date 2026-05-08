@@ -197,6 +197,11 @@ html.embedded .screen-root {
 html.embedded body {
   zoom: 0.85;
 }
+/* CRÍTICO: durante export PDF, zoom precisa ser 1 senão o html2canvas
+   renderiza texto duplicado / com kerning quebrado no PDF gerado. */
+html.embedded body.exporting-pdf {
+  zoom: 1;
+}
 /* Compensação: reduz padding mais ainda já que o zoom já encolhe */
 html.embedded .screen-root {
   padding: 20px 22px;
