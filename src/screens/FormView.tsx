@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import type { Client, Screen, DataSource } from '../lib/types'
 import { apiReports, apiClients } from '../lib/api'
 import { parseCsvFile } from '../lib/csvParser'
@@ -94,8 +94,23 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isFranchise = client.type === 'franchise'
-  const unitItems = client.units && client.units.length > 0
-    ? client.units.map(u => ({ id: u.id, name: u.name }))
+  const [freshUnits, setFreshUnits] = useState(client.units ?? [])
+
+  // Fresh fetch for units (pega meta_account_id atualizado de cada unidade)
+  useEffect(() => {
+    if (!isFranchise) return
+    apiClients.get(client.id)
+      .then(fresh => {
+        setFreshUnits(fresh.units ?? [])
+        // Auto-select only units with Meta linked
+        const withMeta = (fresh.units ?? []).filter(u => u.meta_account_id).map(u => u.id)
+        setSelectedUnits(withMeta)
+      })
+      .catch(() => {/* fallback to prop */})
+  }, [client.id])
+
+  const unitItems = freshUnits.length > 0
+    ? freshUnits.map(u => ({ id: u.id, name: u.name, meta_account_id: u.meta_account_id }))
     : []
 
   const toggleUnit = (id: string) => {
@@ -378,20 +393,46 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
 
       {/* Franchise unit selection */}
       {isFranchise && unitItems.length > 0 && (
-        <Section label={`Unidades (${selectedUnits.length} selecionadas)`}>
+        <Section label={`Unidades (${selectedUnits.length} de ${unitItems.length} selecionadas)`}>
+          <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setSelectedUnits(unitItems.filter(u => u.meta_account_id).map(u => u.id))}
+              style={{
+                background: 'none', border: `1px solid ${T.border}`,
+                borderRadius: 7, padding: '5px 10px', fontSize: 11,
+                color: T.muted, cursor: 'pointer',
+              }}
+            >
+              ✓ Selecionar todas com Meta
+            </button>
+            <button
+              onClick={() => setSelectedUnits([])}
+              style={{
+                background: 'none', border: `1px solid ${T.border}`,
+                borderRadius: 7, padding: '5px 10px', fontSize: 11,
+                color: T.muted, cursor: 'pointer',
+              }}
+            >
+              ☐ Limpar
+            </button>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
             {unitItems.map(u => {
               const on = selectedUnits.includes(u.id)
+              const hasMeta = !!u.meta_account_id
               return (
                 <div
                   key={u.id}
-                  onClick={() => toggleUnit(u.id)}
+                  onClick={() => hasMeta && toggleUnit(u.id)}
+                  title={!hasMeta ? 'Vincule uma conta Meta a essa unidade na tela do cliente' : undefined}
                   style={{
                     background: on ? `${T.brand}0d` : T.surface,
                     border: `1.5px solid ${on ? T.brand : T.border}`,
                     borderRadius: 8, padding: '9px 12px',
                     display: 'flex', gap: 9, alignItems: 'center',
-                    cursor: 'pointer', transition: 'all 0.12s',
+                    cursor: hasMeta ? 'pointer' : 'not-allowed',
+                    opacity: hasMeta ? 1 : 0.5,
+                    transition: 'all 0.12s',
                   }}
                 >
                   <div style={{
@@ -403,7 +444,14 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
                   }}>
                     {on && <span style={{ fontSize: 9, color: '#fff', fontWeight: 800 }}>✓</span>}
                   </div>
-                  <span style={{ fontSize: 13, color: on ? T.text : T.muted, fontWeight: on ? 600 : 400 }}>{u.name}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: on ? T.text : T.muted, fontWeight: on ? 600 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {u.name}
+                    </div>
+                    <div style={{ fontSize: 10, color: hasMeta ? '#22c55e' : 'var(--amber)', marginTop: 1 }}>
+                      {hasMeta ? `● act_${u.meta_account_id}` : '⚠ Sem Meta vinculado'}
+                    </div>
+                  </div>
                 </div>
               )
             })}
