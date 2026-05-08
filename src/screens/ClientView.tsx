@@ -342,7 +342,7 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
             <ReportRow
               key={r.id}
               report={r}
-              onView={() => { onSelectReport(r); onNavigate('report', client) }}
+              onView={() => onSelectReport(r)}
               onDownload={() => showToast('PDF disponível após geração completa')}
               onDelete={() => handleDelete(r.id)}
             />
@@ -647,8 +647,14 @@ function ReportRow({ report, onView, onDownload, onDelete }: ReportRowProps) {
 
   const handleConfirmDelete = async () => {
     setDeleting(true)
-    await onDelete()
-    // (component unmounts after deletion, no need to reset state)
+    try {
+      await onDelete()
+      // (em sucesso, o componente é removido pelo pai)
+    } catch {
+      // mas se falhar, permite tentar de novo
+      setDeleting(false)
+      setConfirmDelete(false)
+    }
   }
 
   return (

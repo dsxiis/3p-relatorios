@@ -135,7 +135,20 @@ export default function App() {
           <ClientView
             client={client}
             onNavigate={navigate}
-            onSelectReport={r => { setReport(r); setHash(`report/${r.id}`) }}
+            onSelectReport={async (r) => {
+              // Navegar primeiro com null pra evitar flash de dados antigos
+              setReport(null)
+              setHash(`report/${r.id}`)
+              setScreen('report')
+              // Fetch completo (lista não inclui raw_data + edits)
+              try {
+                const full = await apiReports.get(r.id)
+                setReport(full)
+              } catch {
+                showToast('Erro ao carregar relatório')
+                setReport(r) // fallback metadata-only
+              }
+            }}
             showToast={showToast}
             onClientUpdated={updated => setClient(updated)}
           />
@@ -161,12 +174,18 @@ export default function App() {
         )}
 
         {screen === 'report' && client && (
-          <ReportView
-            client={client}
-            report={report}
-            onNavigate={navigate}
-            showToast={showToast}
-          />
+          report ? (
+            <ReportView
+              client={client}
+              report={report}
+              onNavigate={navigate}
+              showToast={showToast}
+            />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--hint)', fontSize: 14 }}>
+              Carregando relatório...
+            </div>
+          )
         )}
       </main>
 
