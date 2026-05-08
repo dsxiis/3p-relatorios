@@ -114,7 +114,7 @@ export function EditableImage({
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain',  /* IMAGEM SE ADAPTA AO RETÂNGULO FIXO */
+                objectFit: 'cover',          /* preenche o frame 9:16 inteiro */
                 objectPosition: 'center',
                 display: 'block',
               }}
