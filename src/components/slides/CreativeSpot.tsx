@@ -77,12 +77,12 @@ export function CreativeSpot({
       {/* === METRICS PANEL (em destaque, em cima) === */}
       {metrics && (
         <div style={{
-          padding: '14px 14px 12px',
+          padding: '12px 14px 10px',
           background: surface,
           borderBottom: `1px solid ${border}`,
           display: 'flex',
           flexDirection: 'column',
-          gap: 10,
+          gap: 8,
         }}>
           {/* Top row: Leads/Messages (focal) + CTR */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
@@ -163,7 +163,7 @@ export function CreativeSpot({
       {/* === IMAGE — altura FIXA, contain (mostra imagem inteira sem recorte) === */}
       <div style={{
         width: '100%',
-        height: 240,
+        height: 170,
         position: 'relative',
         background: dark ? t.darkSlideCardBg : '#f9fafb',
       }}>

@@ -113,9 +113,10 @@ export function EditableImage({
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain',  // mostra a imagem inteira sem recortar
+                objectFit: 'contain',
+                objectPosition: 'center',
                 display: 'block',
-                background: bg,         // letterbox combina com tema
+                background: bg,
               }}
             />
             {/* Overlay on hover */}
