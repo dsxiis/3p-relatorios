@@ -268,7 +268,22 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
     },
   })
 
-  const slides = template.renderSlides(data as any, mkEdit, client.logo)
+  const allSlides = template.renderSlides(data as any, mkEdit, client.logo)
+  // Filtra slides ocultos (CampaignSlide/UnitSlide retornam null quando o usuário oculta a campanha/unidade)
+  const slides = allSlides.filter(s => s !== null && s !== undefined)
+  // Conta quantas campanhas/unidades estão ocultas pra exibir botão de restaurar
+  const hiddenKeys = Object.keys(edits).filter(k => /^vis\.(campaign|unit)\.\d+\.(campaign|unit)$/.test(k) && edits[k] === 'false')
+  const hasHidden = hiddenKeys.length > 0
+  const restoreAllHidden = () => {
+    if (!confirm(`Restaurar ${hiddenKeys.length} ${hiddenKeys.length === 1 ? 'item oculto' : 'itens ocultos'}?`)) return
+    hiddenKeys.forEach(async k => {
+      setEdits(prev => ({ ...prev, [k]: 'true' }))
+      if (report) {
+        try { await apiReports.saveEdit(report.id, k, 'true') } catch {}
+      }
+    })
+    showToast(`✓ ${hiddenKeys.length} ${hiddenKeys.length === 1 ? 'item restaurado' : 'itens restaurados'}`)
+  }
 
   return (
     <div style={{ padding: '22px 22px 60px', animation: 'fadein 0.2s ease' }}>
@@ -355,6 +370,16 @@ export function ReportView({ client, report, onNavigate, showToast }: ReportView
             )}
           </div>
 
+          {hasHidden && (
+            <button
+              className="btn-ghost"
+              onClick={restoreAllHidden}
+              style={{ fontSize: 12, padding: '7px 12px' }}
+              title={`${hiddenKeys.length} ${hiddenKeys.length === 1 ? 'item oculto' : 'itens ocultos'}`}
+            >
+              ↺ Restaurar ocultos ({hiddenKeys.length})
+            </button>
+          )}
           <button className="btn-ghost" onClick={() => showToast('Compartilhamento disponível em breve')}>
             Compartilhar
           </button>

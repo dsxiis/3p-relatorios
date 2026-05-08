@@ -25,6 +25,7 @@ interface UnitSlideProps {
   ePeriod: EditState
   eAnnotation: EditState
   eCity: EditState
+  eUnitVisible: EditState
   // Vídeo
   eVideoImage: EditState
   eVideoLink: EditState
@@ -47,11 +48,14 @@ interface UnitSlideProps {
 
 export function UnitSlide({
   unit, clientName, clientLogo, metrics,
-  ePeriod, eAnnotation, eCity,
+  ePeriod, eAnnotation, eCity, eUnitVisible,
   eVideoImage, eVideoLink, eVideoClicks, eVideoMessages, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
   eImageImage, eImageLink, eImageClicks, eImageMessages, eImageCpl, eImageImpressions, eImageCtr, eImageVisible,
 }: UnitSlideProps) {
   const t = useTheme()
+
+  // Se a unidade foi removida pelo usuário, slide não renderiza
+  if (eUnitVisible.value === 'false') return null
 
   const videoData = unit.bestVideo
   const imageData = unit.bestImage ?? unit.bestAd  // fallback pro bestAd legado se não tem bestImage
@@ -71,7 +75,7 @@ export function UnitSlide({
       <SlideLogo clientName={clientName} clientLogo={clientLogo} position="top-right" />
 
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 24, position: 'relative' }}>
         <SectionLabel>Unidade</SectionLabel>
         <h2 style={{ margin: '6px 0 0', fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }}>
           <EditableField e={eCity} style={{ fontSize: 36, fontWeight: 800, color: t.slideText, letterSpacing: '-1px' }} placeholder="Cidade" />
@@ -79,6 +83,37 @@ export function UnitSlide({
         <div style={{ fontSize: 12, color: t.slideHint, marginTop: 4 }}>
           <EditableField e={ePeriod} style={{ fontSize: 12, color: t.slideHint }} />
         </div>
+        {/* Botão remover unidade — esconde slide inteiro */}
+        <button
+          data-editor-only="true"
+          onClick={() => {
+            if (confirm(`Remover a unidade "${unit.city || 'sem nome'}" do relatório? Você pode restaurar depois.`)) {
+              eUnitVisible.change('false')
+              eUnitVisible.save('false')
+            }
+          }}
+          style={{
+            position: 'absolute', top: 0, right: 0, zIndex: 5,
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'none', border: `0.5px solid ${t.slideHint}`,
+            borderRadius: 6, padding: '4px 10px',
+            fontSize: 11, color: t.slideHint, cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#ff6b6b'
+            e.currentTarget.style.borderColor = '#ff6b6b'
+            e.currentTarget.style.background = 'rgba(255,107,107,0.06)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = t.slideHint
+            e.currentTarget.style.borderColor = t.slideHint
+            e.currentTarget.style.background = 'none'
+          }}
+          title="Remover esta unidade do relatório"
+        >
+          × Remover unidade
+        </button>
       </div>
 
       {/* Main grid: metrics+annotations | melhor vídeo | melhor estático */}

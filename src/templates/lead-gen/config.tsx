@@ -68,6 +68,7 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
             ePeriod={ePeriod}
             eAnnotation={mkEdit(`${pfx}.annotation`, campaign.annotation)}
             eName={mkEdit(`${pfx}.name`, campaign.name)}
+            eCampaignVisible={mkEdit(`vis.${pfx}.campaign`, 'true')}
             // Vídeo (mostra sempre, mesmo sem dados — usuário pode adicionar manualmente)
             eVideoImage={mkEdit(`${pfx}.video.image`, v?.thumbnail_url ?? '')}
             eVideoLink={mkEdit(`${pfx}.video.link`, v?.preview_link ?? '')}

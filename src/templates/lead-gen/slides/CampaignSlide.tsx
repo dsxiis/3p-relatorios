@@ -25,6 +25,8 @@ interface CampaignSlideProps {
   ePeriod: EditState
   eAnnotation: EditState
   eName: EditState
+  // Toggle pra esconder/remover a campanha inteira do relatório
+  eCampaignVisible: EditState
   // Vídeo
   eVideoImage: EditState
   eVideoLink: EditState
@@ -47,11 +49,14 @@ interface CampaignSlideProps {
 
 export function CampaignSlide({
   campaign, clientName, clientLogo, metrics,
-  ePeriod, eAnnotation, eName,
+  ePeriod, eAnnotation, eName, eCampaignVisible,
   eVideoImage, eVideoLink, eVideoClicks, eVideoLeads, eVideoCpl, eVideoImpressions, eVideoCtr, eVideoVisible,
   eImageImage, eImageLink, eImageClicks, eImageLeads, eImageCpl, eImageImpressions, eImageCtr, eImageVisible,
 }: CampaignSlideProps) {
   const t = useTheme()
+
+  // Se a campanha foi removida pelo usuário, não renderiza nada — slide some do relatório e do PDF
+  if (eCampaignVisible.value === 'false') return null
 
   // Sem fallback — se topVideo não existe, fica undefined (não duplica com topImage)
   const videoData = campaign.topVideo
@@ -73,7 +78,7 @@ export function CampaignSlide({
       <SlideLogo clientName={clientName} clientLogo={clientLogo} position="top-right" />
 
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 24, position: 'relative' }}>
         <SectionLabel>Campanha</SectionLabel>
         <h2 style={{ margin: '6px 0 0', fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }}>
           <EditableField e={eName} style={{ fontSize: 32, fontWeight: 800, color: t.slideText, letterSpacing: '-0.8px' }} placeholder="Nome da campanha" />
@@ -83,6 +88,37 @@ export function CampaignSlide({
           {' · '}
           <EditableField e={ePeriod} style={{ fontSize: 12, color: t.slideHint }} />
         </div>
+        {/* Botão remover campanha — esconde slide inteiro */}
+        <button
+          data-editor-only="true"
+          onClick={() => {
+            if (confirm(`Remover a campanha "${campaign.name}" do relatório? Você pode restaurar depois.`)) {
+              eCampaignVisible.change('false')
+              eCampaignVisible.save('false')
+            }
+          }}
+          style={{
+            position: 'absolute', top: 0, right: 0, zIndex: 5,
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'none', border: `0.5px solid ${t.slideHint}`,
+            borderRadius: 6, padding: '4px 10px',
+            fontSize: 11, color: t.slideHint, cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#ff6b6b'
+            e.currentTarget.style.borderColor = '#ff6b6b'
+            e.currentTarget.style.background = 'rgba(255,107,107,0.06)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = t.slideHint
+            e.currentTarget.style.borderColor = t.slideHint
+            e.currentTarget.style.background = 'none'
+          }}
+          title="Remover esta campanha do relatório"
+        >
+          × Remover campanha
+        </button>
       </div>
 
       {/* Main grid */}

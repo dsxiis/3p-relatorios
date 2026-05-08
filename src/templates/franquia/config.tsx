@@ -52,6 +52,7 @@ export const franquiaConfig: TemplateConfig<FranchiseData> = {
             ePeriod={ePeriod}
             eAnnotation={mkEdit(`${pfx}.annotation`, unit.annotation)}
             eCity={mkEdit(`${pfx}.city`, unit.city)}
+            eUnitVisible={mkEdit(`vis.${pfx}.unit`, 'true')}
             // Vídeo
             eVideoImage={mkEdit(`${pfx}.video.image`, v?.thumbnail_url ?? '')}
             eVideoLink={mkEdit(`${pfx}.video.link`, v?.preview_link ?? '')}
