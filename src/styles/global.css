@@ -70,6 +70,110 @@ body.exporting-pdf [data-editor-only="true"] {
   width: 100%;
 }
 
+/* Layout vertical (header em cima + conteúdo embaixo) */
+.app-layout-stacked {
+  flex-direction: column;
+}
+
+/* ── APP HEADER (unifica standalone + embed) ─────────── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 28px;
+}
+.app-header-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.app-header-brand-mark {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: -0.5px;
+}
+.app-header-brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.app-header-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+.app-header-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.app-header-tab:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.app-header-tab.active {
+  background: var(--brand);
+  color: #fff;
+}
+.app-header-tab-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+.app-header-theme-btn {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 0.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.app-header-theme-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+/* Embed: layout mais compacto, sem max-width restritivo */
+.app-header-embed .app-header-inner {
+  justify-content: center;
+  padding: 10px 16px;
+  max-width: none;
+}
+
 /* ── SIDEBAR ─────────────────────────────────────────── */
 .sidebar {
   width: 230px;

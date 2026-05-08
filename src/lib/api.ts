@@ -88,6 +88,8 @@ export const apiMeta = {
     request<MetaCampaignInsight[]>(
       `/api/meta/insights?account_id=${accountId}&start=${start}&end=${end}`
     ),
+  hdThumb: (creativeId: string) =>
+    request<{ thumbnail_url: string }>(`/api/meta/hd-thumb?creative_id=${encodeURIComponent(creativeId)}`),
 }
 
 /* ── SETTINGS ─────────────────────────────────────────── */

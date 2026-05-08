@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Screen, Client, Report } from './lib/types'
 import { apiClients, apiReports } from './lib/api'
-import { Sidebar } from './components/Sidebar'
-import { EmbedHeader } from './components/EmbedHeader'
+import { AppHeader } from './components/AppHeader'
 import { Toast } from './components/Toast'
 import { Dashboard } from './screens/Dashboard'
 import { ClientView } from './screens/ClientView'
@@ -111,7 +110,8 @@ export default function App() {
     )
   }
 
-  // Embed: usa header horizontal compacto. Standalone: sidebar lateral.
+  // Header horizontal unificado: standalone mostra brand+toggle, embed esconde.
+  // Telas de geração e visualização full não mostram nav.
   const showNav = ['dashboard', 'client', 'form', 'templates', 'settings'].includes(screen)
   const handleNavClick = (sc: Screen) => {
     if (sc === 'dashboard') { setClient(null); setReport(null) }
@@ -121,12 +121,9 @@ export default function App() {
   }
 
   return (
-    <div className={`app-layout${IS_EMBEDDED ? ' app-layout-embed' : ''}`}>
-      {showNav && !IS_EMBEDDED && (
-        <Sidebar screen={screen} onNavigate={handleNavClick} />
-      )}
-      {showNav && IS_EMBEDDED && (
-        <EmbedHeader screen={screen} onNavigate={handleNavClick} />
+    <div className="app-layout app-layout-stacked">
+      {showNav && (
+        <AppHeader screen={screen} onNavigate={handleNavClick} embedded={IS_EMBEDDED} />
       )}
 
       <main key={screen} className="main-content">

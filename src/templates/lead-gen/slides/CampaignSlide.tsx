@@ -133,6 +133,7 @@ export function CampaignSlide({
               } : { clicks: 0, leads: 0, cpl: 0, impressions: 0, ctr: 0 }}
               previewLink={videoData?.preview_link}
               adName={videoData?.ad_name}
+              creativeId={videoData?.creative_id}
               eImage={eVideoImage}
               eLink={eVideoLink}
               eClicks={eVideoClicks}
@@ -180,6 +181,7 @@ export function CampaignSlide({
               } : { clicks: 0, leads: 0, cpl: 0, impressions: 0, ctr: 0 }}
               previewLink={imageData?.preview_link}
               adName={imageData?.ad_name}
+              creativeId={imageData?.creative_id}
               eImage={eImageImage}
               eLink={eImageLink}
               eClicks={eImageClicks}

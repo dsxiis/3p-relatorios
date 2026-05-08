@@ -1,7 +1,9 @@
+import { useEffect, useRef } from 'react'
 import type { EditState } from '../../lib/types'
 import { EditableField } from './EditableField'
 import { EditableImage } from './EditableImage'
 import { useTheme } from '../../lib/themeContext'
+import { apiMeta } from '../../lib/api'
 
 interface CreativeMetrics {
   clicks?: number
@@ -19,6 +21,8 @@ interface CreativeSpotProps {
   // Link e nome do ad — passados pra edit state quando vem do Meta
   previewLink?: string | null
   adName?: string | null
+  // ID do creative — usado pra fazer upgrade lazy da thumbnail pra HD (1080×1920)
+  creativeId?: string | null
   // Edit states — all optional for backwards compat
   eImage?: EditState
   eLink?: EditState     // link editável pro preview do anúncio
@@ -40,6 +44,7 @@ export function CreativeSpot({
   dark = false,
   previewLink,
   adName,
+  creativeId,
   eImage,
   eLink,
   eClicks,
@@ -51,6 +56,30 @@ export function CreativeSpot({
 }: CreativeSpotProps) {
   // Link efetivo: prioridade pro estado editado, fallback pro vindo da Meta
   const effectiveLink = (eLink?.value ?? previewLink ?? '').trim()
+
+  // Lazy HD upgrade: se temos creative_id e a thumbnail atual é da Meta CDN,
+  // troca pelo HD on-demand. Não mexe se user uploadou imagem custom (não-fbcdn).
+  const upgradedRef = useRef(false)
+  useEffect(() => {
+    if (upgradedRef.current) return
+    if (!creativeId || !eImage) return
+    const current = eImage.value ?? ''
+    // Só faz upgrade pra URLs da Meta CDN. data: URLs (uploads custom) ficam intactas.
+    if (!current.includes('fbcdn.net')) return
+    // Já é HD? skip
+    if (current.includes('p1080x1920')) return
+    upgradedRef.current = true
+    apiMeta.hdThumb(creativeId)
+      .then(({ thumbnail_url }) => {
+        const v = eImage.value ?? ''
+        // Recheca: ainda fbcdn (não foi customizada)?
+        if (v.includes('fbcdn.net') && !v.includes('p1080x1920')) {
+          eImage.change(thumbnail_url)
+          eImage.save(thumbnail_url)
+        }
+      })
+      .catch(() => { /* mantém lo-res — já funciona, só fica borrado */ })
+  }, [creativeId, eImage])
   const t = useTheme()
   const text   = dark ? t.darkSlideText : t.slideText
   const muted  = dark ? t.darkSlideMuted : t.slideMuted

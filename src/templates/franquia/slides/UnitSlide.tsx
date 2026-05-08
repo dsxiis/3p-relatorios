@@ -129,6 +129,7 @@ export function UnitSlide({
               } : { clicks: 0, messages: 0, cpl: 0, impressions: 0, ctr: 0 }}
               previewLink={videoData?.preview_link}
               adName={videoData?.ad_name}
+              creativeId={(videoData as any)?.creative_id}
               eImage={eVideoImage}
               eLink={eVideoLink}
               eClicks={eVideoClicks}
@@ -176,6 +177,7 @@ export function UnitSlide({
               } : { clicks: 0, messages: 0, cpl: 0, impressions: 0, ctr: 0 }}
               previewLink={imageData?.preview_link}
               adName={imageData?.ad_name}
+              creativeId={(imageData as any)?.creative_id}
               eImage={eImageImage}
               eLink={eImageLink}
               eClicks={eImageClicks}

@@ -69,7 +69,7 @@ export function EditableImage({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: width === '100%' ? '100%' : undefined, height: height === '100%' ? '100%' : undefined }}>
       {label && (
         <div style={{ fontSize: 10, fontWeight: 700, color: muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           {label}
