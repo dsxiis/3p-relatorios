@@ -48,12 +48,12 @@ export const leadGenConfig: TemplateConfig<LeadGenData> = {
         const pfx = `campaign.${i}`
         const slideKey = `campaign-${i}-${campaign.id || campaign.name}`
         const campaignMetrics = [
-          { label: 'Investido',    value: fmtBRL(campaign.spend),                       e: mkEdit(`${pfx}.spend`, fmtBRL(campaign.spend)),                        eVisible: mkEdit(`vis.${pfx}.spend`, 'true') },
-          { label: 'Impressões',   value: fmtNum(campaign.impressions),                  e: mkEdit(`${pfx}.impressions`, fmtNum(campaign.impressions)),              eVisible: mkEdit(`vis.${pfx}.impressions`, 'true') },
-          { label: 'Leads',        value: fmtNum(campaign.leads), accentColor: '#34d399',e: mkEdit(`${pfx}.leads`, fmtNum(campaign.leads)),                         eVisible: mkEdit(`vis.${pfx}.leads`, 'true') },
-          { label: 'CPL',          value: fmtBRL(campaign.cpl),   accentColor: campaign.cpl < (campaign.cplPrevPeriod ?? campaign.cpl + 1) ? '#34d399' : '#f59e0b', e: mkEdit(`${pfx}.cpl`, fmtBRL(campaign.cpl)), eVisible: mkEdit(`vis.${pfx}.cpl`, 'true') },
-          { label: 'CPL Anterior', value: campaign.cplPrevPeriod ? fmtBRL(campaign.cplPrevPeriod) : '—', sub: 'período anterior', e: mkEdit(`${pfx}.cplPrev`, campaign.cplPrevPeriod ? fmtBRL(campaign.cplPrevPeriod) : '—'), eVisible: mkEdit(`vis.${pfx}.cplPrev`, 'true') },
-          { label: 'Cliques',      value: fmtNum(campaign.clicks),                       e: mkEdit(`${pfx}.clicks`, fmtNum(campaign.clicks)),                       eVisible: mkEdit(`vis.${pfx}.clicks`, 'true') },
+          { label: 'Investido',  value: fmtBRL(campaign.spend),                                   e: mkEdit(`${pfx}.spend`, fmtBRL(campaign.spend)),                  eVisible: mkEdit(`vis.${pfx}.spend`, 'true') },
+          { label: 'Alcance',    value: fmtNum(campaign.reach ?? 0),                              e: mkEdit(`${pfx}.reach`, fmtNum(campaign.reach ?? 0)),             eVisible: mkEdit(`vis.${pfx}.reach`, 'true') },
+          { label: 'Impressões', value: fmtNum(campaign.impressions),                              e: mkEdit(`${pfx}.impressions`, fmtNum(campaign.impressions)),      eVisible: mkEdit(`vis.${pfx}.impressions`, 'true') },
+          { label: 'Leads',      value: fmtNum(campaign.leads),         accentColor: '#34d399',    e: mkEdit(`${pfx}.leads`, fmtNum(campaign.leads)),                  eVisible: mkEdit(`vis.${pfx}.leads`, 'true') },
+          { label: 'CPL',        value: fmtBRL(campaign.cpl),           accentColor: campaign.cpl < (campaign.cplPrevPeriod ?? campaign.cpl + 1) ? '#34d399' : '#f59e0b', e: mkEdit(`${pfx}.cpl`, fmtBRL(campaign.cpl)), eVisible: mkEdit(`vis.${pfx}.cpl`, 'true') },
+          { label: 'Cliques',    value: fmtNum(campaign.clicks),                                   e: mkEdit(`${pfx}.clicks`, fmtNum(campaign.clicks)),                eVisible: mkEdit(`vis.${pfx}.clicks`, 'true') },
         ]
         // SEM fallback — topVideo e topImage são independentes (evita duplicar)
         const v = campaign.topVideo

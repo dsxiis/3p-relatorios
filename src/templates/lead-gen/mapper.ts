@@ -21,6 +21,7 @@ export function metaMapper(
       id: campaignId,
       name: insight.campaign_name,
       spend,
+      reach: parseInt(insight.reach) || 0,
       impressions: parseInt(insight.impressions) || 0,
       clicks: parseInt(insight.clicks) || 0,
       leads,
@@ -68,10 +69,12 @@ export function csvMapper(
       const cpl = leads > 0 ? spend / leads : 0
       const campaignId = name.match(/\d{4}/)?.[0] ?? name.slice(0, 8)
 
+      const reach = parseInt(row['Reach'] ?? row['Alcance'] ?? '0') || 0
       return {
         id: campaignId,
         name,
         spend,
+        reach,
         impressions,
         clicks,
         leads,

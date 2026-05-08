@@ -16,6 +16,7 @@ export const leadGenCampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
   spend: z.number(),
+  reach: z.number().default(0),
   impressions: z.number(),
   clicks: z.number(),
   leads: z.number(),
