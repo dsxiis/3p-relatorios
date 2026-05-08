@@ -174,6 +174,22 @@ body.exporting-pdf [data-editor-only="true"] {
   max-width: none;
 }
 
+/* ── SCREEN ROOT (padding consistente, responsivo no embed) ── */
+.screen-root {
+  padding: 40px 44px;
+  margin: 0 auto;
+}
+/* Embed: padding menor, ocupa toda a largura disponível do iframe */
+html.embedded .screen-root {
+  padding: 24px 24px;
+}
+/* Telas estreitas (mobile / iframe pequeno) */
+@media (max-width: 760px) {
+  .screen-root {
+    padding: 20px 16px;
+  }
+}
+
 /* ── SIDEBAR ─────────────────────────────────────────── */
 .sidebar {
   width: 230px;

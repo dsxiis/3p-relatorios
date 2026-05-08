@@ -127,7 +127,7 @@ export function ClientView({ client, onNavigate, onSelectReport, showToast, onCl
   const initials = clientName.slice(0, 2).toUpperCase()
 
   return (
-    <div style={{ padding: '38px 42px', animation: 'fadein 0.25s ease' }}>
+    <div className="screen-root" style={{ animation: 'fadein 0.25s ease' }}>
       {/* Back */}
       <button
         onClick={() => onNavigate('dashboard')}

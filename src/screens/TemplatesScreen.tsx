@@ -12,7 +12,7 @@ export function TemplatesScreen({ onBack: _ }: TemplatesScreenProps) {
   const [expanded, setExpanded] = useState<SlideTheme | null>(null)
 
   return (
-    <div style={{ padding: '38px 42px', maxWidth: 860, animation: 'fadein 0.25s ease' }}>
+    <div className="screen-root" style={{ maxWidth: 860, animation: 'fadein 0.25s ease' }}>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: T.text, letterSpacing: '-0.4px', margin: 0 }}>
           Templates de Relatório

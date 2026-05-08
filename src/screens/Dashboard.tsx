@@ -77,7 +77,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
   const hasChartData = !statsLoading && (stats?.monthly_counts?.length ?? 0) > 0
 
   return (
-    <div style={{ padding: '40px 44px', animation: 'fadein 0.25s ease' }}>
+    <div className="screen-root" style={{ animation: 'fadein 0.25s ease' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>

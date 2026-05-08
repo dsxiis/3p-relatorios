@@ -153,7 +153,7 @@ export function SettingsScreen({ showToast }: SettingsScreenProps) {
   const tokenInfo = settings?.meta_token
 
   return (
-    <div style={{ padding: '38px 42px', maxWidth: 760, animation: 'fadein 0.25s ease' }}>
+    <div className="screen-root" style={{ maxWidth: 760, animation: 'fadein 0.25s ease' }}>
       <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.6px', color: T.text, marginBottom: 6 }}>
         Configurações
       </h1>

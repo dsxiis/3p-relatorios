@@ -173,7 +173,7 @@ export function FormView({ client, onNavigate, onGenerate, showToast, onClientUp
   const selectedTheme = ALL_THEMES.find(t => t.id === selectedThemeId)!
 
   return (
-    <div style={{ padding: '40px 44px', maxWidth: 600, animation: 'fadein 0.25s ease' }}>
+    <div className="screen-root" style={{ maxWidth: 600, animation: 'fadein 0.25s ease' }}>
       {/* Back */}
       <button
         onClick={() => onNavigate('client', client)}
