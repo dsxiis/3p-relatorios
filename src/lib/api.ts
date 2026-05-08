@@ -1,4 +1,4 @@
-import type { Client, Report, MetaAdAccount, MetaCampaignInsight, GenerateReportPayload } from './types'
+import type { Client, Report, MetaAdAccount, MetaCampaignInsight, GenerateReportPayload, DashboardStats } from './types'
 
 const WORKER_BASE = import.meta.env.VITE_WORKER_URL ?? 'http://localhost:8787'
 const API_KEY = import.meta.env.VITE_API_KEY ?? ''
@@ -47,6 +47,11 @@ export const apiReports = {
     }),
   delete: (id: string) => request<{ ok: boolean }>(`/api/reports/${id}`, { method: 'DELETE' }),
   pdfUrl: (id: string) => `${WORKER_BASE}/api/reports/${id}/pdf`,
+}
+
+/* ── STATS ────────────────────────────────────────────── */
+export const apiStats = {
+  get: () => request<DashboardStats>('/api/stats'),
 }
 
 /* ── META ─────────────────────────────────────────────── */

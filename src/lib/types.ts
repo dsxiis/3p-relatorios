@@ -17,6 +17,7 @@ export interface Client {
   description: string | null
   meta_account_id: string | null
   logo?: string | null
+  color?: string
   created_at: string
   // hydrated
   reports?: Report[]
@@ -140,6 +141,37 @@ export interface GenerateReportPayload {
   template_id?: string
   csv_data?: string   // raw CSV rows as JSON string, only when source === 'csv'
   unit_ids?: string[]
+}
+
+/* ── DASHBOARD STATS ──────────────────────────────────── */
+export interface RecentReport {
+  id: string
+  period_label: string
+  status: ReportStatus
+  created_at: string
+  client_id: string
+  client_name: string
+  client_color: string
+}
+
+export interface MonthlyCount {
+  month: string
+  count: number
+}
+
+export interface ClientReportCount {
+  client_id: string
+  report_count: number
+  last_report_at: string
+}
+
+export interface DashboardStats {
+  total_clients: number
+  total_reports: number
+  reports_this_month: number
+  recent_reports: RecentReport[]
+  monthly_counts: MonthlyCount[]
+  per_client_counts: ClientReportCount[]
 }
 
 /* ── APP STATE ────────────────────────────────────────── */

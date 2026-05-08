@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Client, Screen } from '../lib/types'
-import { apiClients } from '../lib/api'
+import type { Client, DashboardStats, Screen } from '../lib/types'
+import { apiClients, apiStats } from '../lib/api'
 import { T } from '../styles/tokens'
 import { NewClientModal } from '../components/NewClientModal'
+import { StatsRow } from '../components/StatsRow'
+import { ReportsBarChart } from '../components/ReportsBarChart'
+import { RecentActivity } from '../components/RecentActivity'
+import { relativeTime } from '../lib/utils'
 
 interface DashboardProps {
   onSelectClient: (client: Client) => void
@@ -14,6 +18,8 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
 
   const fetchClients = () => {
     setLoading(true)
@@ -23,12 +29,24 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchClients() }, [])
+  const fetchStats = () => {
+    setStatsLoading(true)
+    apiStats.get()
+      .then(setStats)
+      .catch(() => setStats(null))
+      .finally(() => setStatsLoading(false))
+  }
+
+  useEffect(() => {
+    fetchClients()
+    fetchStats()
+  }, [])
 
   const handleCreated = (client: Client) => {
     setShowModal(false)
     showToast(`✓ ${client.name} criado`)
     fetchClients()
+    fetchStats()
   }
 
   const handleRenamed = (id: string, name: string) => {
@@ -38,6 +56,7 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
   const handleDeleted = (id: string) => {
     setClients(prev => prev.filter(c => c.id !== id))
     showToast('Cliente removido')
+    fetchStats()
   }
 
   const handleGenerate = (client: Client) => {
@@ -50,16 +69,23 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
     onNavigate('client', client)
   }
 
+  const handleNavigateToClient = (clientId: string) => {
+    const c = clients.find(x => x.id === clientId)
+    if (c) { onSelectClient(c); onNavigate('client', c) }
+  }
+
+  const hasChartData = !statsLoading && (stats?.monthly_counts?.length ?? 0) > 0
+
   return (
-    <div style={{ padding: '40px 44px', maxWidth: 720, animation: 'fadein 0.25s ease' }}>
+    <div style={{ padding: '40px 44px', maxWidth: 760, animation: 'fadein 0.25s ease' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.6px', color: T.text, marginBottom: 6 }}>
-            Clientes
+            Dashboard
           </h1>
           <p style={{ color: T.muted, fontSize: 14 }}>
-            Selecione um cliente para gerar o relatório.
+            Visão geral da sua operação de relatórios.
           </p>
         </div>
         <button
@@ -71,27 +97,73 @@ export function Dashboard({ onSelectClient, onNavigate, showToast }: DashboardPr
         </button>
       </div>
 
+      {/* Stats cards */}
+      <StatsRow stats={stats} loading={statsLoading} />
+
+      {/* Chart + Activity row */}
+      {(hasChartData || statsLoading || (stats && stats.recent_reports.length > 0)) && (
+        <div style={{ display: 'flex', gap: 14, marginBottom: 28, alignItems: 'stretch' }}>
+          {/* Bar chart */}
+          {(hasChartData || statsLoading) && (
+            <div style={{ flex: 2 }}>
+              {statsLoading ? (
+                <div style={{
+                  background: T.surface, border: `0.5px solid ${T.border}`,
+                  borderRadius: 14, height: 200,
+                  animation: 'pulse 1.4s ease-in-out infinite',
+                }} />
+              ) : stats?.monthly_counts && stats.monthly_counts.length > 0 ? (
+                <ReportsBarChart months={stats.monthly_counts} />
+              ) : null}
+            </div>
+          )}
+
+          {/* Recent activity */}
+          <div style={{ flex: 1.3 }}>
+            <RecentActivity
+              reports={stats?.recent_reports ?? []}
+              loading={statsLoading}
+              onNavigateToClient={handleNavigateToClient}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Client list header */}
+      <div style={{
+        fontSize: 11, fontWeight: 700, color: T.hint,
+        letterSpacing: '0.8px', textTransform: 'uppercase',
+        marginBottom: 12,
+      }}>
+        Clientes
+      </div>
+
       {/* Client list */}
       {loading ? (
-        <div style={{ color: T.hint, fontSize: 14, padding: '40px 0', textAlign: 'center' }}>
+        <div style={{ color: T.hint, fontSize: 14, padding: '32px 0', textAlign: 'center' }}>
           Carregando clientes...
         </div>
       ) : clients.length === 0 ? (
         <EmptyState onAdd={() => setShowModal(true)} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {clients.map((c, i) => (
-            <ClientCard
-              key={c.id}
-              client={c}
-              delay={i * 50}
-              onGenerate={() => handleGenerate(c)}
-              onView={() => handleView(c)}
-              onRenamed={handleRenamed}
-              onDeleted={handleDeleted}
-              showToast={showToast}
-            />
-          ))}
+          {clients.map((c, i) => {
+            const perClient = stats?.per_client_counts?.find(x => x.client_id === c.id)
+            return (
+              <ClientCard
+                key={c.id}
+                client={c}
+                delay={i * 50}
+                reportCount={perClient?.report_count}
+                lastReportAt={perClient?.last_report_at}
+                onGenerate={() => handleGenerate(c)}
+                onView={() => handleView(c)}
+                onRenamed={handleRenamed}
+                onDeleted={handleDeleted}
+                showToast={showToast}
+              />
+            )
+          })}
         </div>
       )}
 
@@ -134,6 +206,8 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 interface ClientCardProps {
   client: Client
   delay: number
+  reportCount?: number
+  lastReportAt?: string
   onGenerate: () => void
   onView: () => void
   onRenamed: (id: string, name: string) => void
@@ -141,10 +215,13 @@ interface ClientCardProps {
   showToast: (msg: string) => void
 }
 
-function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, showToast }: ClientCardProps) {
+function ClientCard({
+  client, delay, reportCount, lastReportAt,
+  onGenerate, onView, onRenamed, onDeleted, showToast,
+}: ClientCardProps) {
   const initials = client.name.slice(0, 2).toUpperCase()
   const typeLabel = client.type === 'franchise' ? 'Franquia' : 'Lead Gen'
-  const cardColor = (client as any).color ?? '#8B35E8'
+  const cardColor = client.color ?? '#8B35E8'
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
@@ -209,7 +286,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
         background: T.surface,
         border: `0.5px solid ${T.border}`,
         borderRadius: 14,
-        padding: '18px 20px',
+        padding: '16px 20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -222,7 +299,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
       onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderHover; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none' }}
     >
-      {/* Left: avatar + name */}
+      {/* Left: avatar + info */}
       <div
         onClick={renaming ? undefined : onView}
         style={{ display: 'flex', gap: 14, alignItems: 'center', flex: 1, cursor: renaming ? 'default' : 'pointer', minWidth: 0 }}
@@ -242,6 +319,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
           )}
         </div>
 
+        {/* Name + meta */}
         <div style={{ minWidth: 0 }}>
           {renaming ? (
             <input
@@ -257,7 +335,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
               disabled={actionLoading}
               style={{
                 fontSize: 16, fontWeight: 700, color: T.text,
-                background: T.surface2, border: `1.5px solid ${T.brand}`,
+                background: T.surface, border: `1.5px solid ${T.brand}`,
                 borderRadius: 6, padding: '3px 8px', outline: 'none',
                 width: 220,
               }}
@@ -267,10 +345,26 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
               {client.name}
             </div>
           )}
-          <div style={{ fontSize: 12, color: T.muted, marginTop: 3 }}>
-            {typeLabel}
+          <div style={{ fontSize: 12, color: T.muted, marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span>{typeLabel}</span>
+            {!client.meta_account_id && (
+              <span title="Sem conta Meta Ads vinculada" style={{ color: 'var(--amber)', fontSize: 11 }}>⚠ Sem Meta</span>
+            )}
             {client.meta_account_id && (
-              <span style={{ marginLeft: 8, color: '#22c55e' }}>● Meta vinculado</span>
+              <span style={{ color: '#22c55e' }}>● Meta vinculado</span>
+            )}
+            {reportCount !== undefined && reportCount > 0 && (
+              <span style={{
+                background: 'var(--surface2)',
+                border: `0.5px solid ${T.border}`,
+                borderRadius: 20, padding: '1px 7px',
+                fontSize: 11, color: T.hint,
+              }}>
+                {reportCount} {reportCount === 1 ? 'relatório' : 'relatórios'}
+              </span>
+            )}
+            {lastReportAt && (
+              <span style={{ color: T.hint, fontSize: 11 }}>{relativeTime(lastReportAt)}</span>
             )}
           </div>
         </div>
@@ -278,26 +372,18 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
 
       {/* Right: actions */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, marginLeft: 12 }}>
-        {/* Gerar relatório — primary action */}
         <button
           onClick={e => { e.stopPropagation(); onGenerate() }}
           style={{
             background: `linear-gradient(135deg, #5B18A8, #8833ff)`,
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 16px',
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: 'pointer',
-            letterSpacing: '-0.1px',
-            whiteSpace: 'nowrap',
+            color: '#fff', border: 'none', borderRadius: 8,
+            padding: '8px 16px', fontSize: 13, fontWeight: 700,
+            cursor: 'pointer', letterSpacing: '-0.1px', whiteSpace: 'nowrap',
           }}
         >
           Gerar relatório
         </button>
 
-        {/* Histórico */}
         <button
           onClick={e => { e.stopPropagation(); onView() }}
           className="btn-ghost"
@@ -311,10 +397,8 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
           <button
             onClick={e => { e.stopPropagation(); setMenuOpen(o => !o); setConfirming(false) }}
             style={{
-              background: 'none', border: 'none',
-              cursor: 'pointer', color: T.hint,
-              fontSize: 20, letterSpacing: '1px',
-              padding: '4px 6px', lineHeight: 1,
+              background: 'none', border: 'none', cursor: 'pointer', color: T.hint,
+              fontSize: 20, letterSpacing: '1px', padding: '4px 6px', lineHeight: 1,
               borderRadius: 6, display: 'flex', alignItems: 'center',
             }}
           >
@@ -324,12 +408,9 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
           {menuOpen && (
             <div style={{
               position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 200,
-              background: T.surface,
-              border: `1px solid ${T.border}`,
-              borderRadius: 10,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-              minWidth: 150,
-              overflow: 'hidden',
+              background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              minWidth: 150, overflow: 'hidden',
             }}>
               {!confirming ? (
                 <>
@@ -340,7 +421,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
                       padding: '11px 16px', textAlign: 'left',
                       fontSize: 13, fontWeight: 600, color: T.text, cursor: 'pointer',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = T.surface2)}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface2)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                   >
                     Renomear
@@ -353,7 +434,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
                       padding: '11px 16px', textAlign: 'left',
                       fontSize: 13, fontWeight: 600, color: '#f87171', cursor: 'pointer',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = T.surface2)}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface2)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                   >
                     Excluir cliente
@@ -371,7 +452,7 @@ function ClientCard({ client, delay, onGenerate, onView, onRenamed, onDeleted, s
                     <button
                       onClick={e => { e.stopPropagation(); setConfirming(false) }}
                       style={{
-                        flex: 1, background: T.surface2, border: 'none',
+                        flex: 1, background: 'var(--surface2)', border: 'none',
                         borderRadius: 7, padding: '7px 0',
                         fontSize: 12, fontWeight: 600, color: T.muted, cursor: 'pointer',
                       }}
